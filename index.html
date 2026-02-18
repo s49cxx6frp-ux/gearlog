@@ -167,12 +167,17 @@
     display: flex;
     padding: 0 24px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+  .top-nav::-webkit-scrollbar { display: none; }
   .top-nav-btn {
     background: none;
     border: none;
     border-bottom: 2px solid transparent;
     padding: 14px 20px;
+    flex-shrink: 0;
     font-family: var(--font-head);
     font-size: 0.78rem;
     font-weight: 600;
@@ -342,7 +347,12 @@
     border-bottom: 1px solid var(--border);
     padding: 0 24px;
     background: var(--surface2);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+  .tabs::-webkit-scrollbar { display: none; }
   .tab {
     padding: 12px 18px;
     font-family: var(--font-mono);
@@ -707,9 +717,10 @@
     .form-row { grid-template-columns: 1fr; }
     .detail-header { padding: 14px 16px; }
     .tab-content { padding: 16px; }
-    .tabs { padding: 0 4px; overflow-x: auto; }
-    .top-nav { padding: 0 8px; }
-    .top-nav-btn { padding: 10px 12px; font-size: 0.72rem; }
+    .tabs { padding: 0 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab { flex-shrink: 0; }
+    .top-nav { padding: 0 4px; }
+    .top-nav-btn { padding: 10px 14px; font-size: 0.72rem; flex-shrink: 0; white-space: nowrap; }
   }
 </style>
 </head>
@@ -1034,7 +1045,7 @@
       <button class="modal-close" onclick="closeModal('modalAmazonExport')">✕</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:16px">Parts still needed (unchecked in Shopping List). Copy and use as your shopping reference.</p>
+      <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:16px">Your checked items — ready to shop. Use the Amazon buttons in the list to search directly, or copy this list as a reference.</p>
       <textarea id="amazonExportText" readonly style="width:100%;height:320px;font-family:'DM Mono',monospace;font-size:0.78rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:12px;resize:none;line-height:1.7;color:var(--text)"></textarea>
     </div>
     <div class="modal-footer">
@@ -1990,11 +2001,16 @@ function renderShopping() {
       const matchNote = matchedPart
         ? `<span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--green);margin-left:6px;opacity:0.8">↔ synced with parts ref</span>`
         : '';
-      html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);${isChecked ? 'opacity:0.45' : ''}">
-        <div class="shop-check ${isChecked ? 'checked' : ''}" onclick="${onClickFn}" style="flex-shrink:0">${isChecked ? '✓' : ''}</div>
+      const customAmazonQuery = encodeURIComponent(item.taskName);
+      const customAmazonBtn = isChecked
+        ? `<a href="https://www.amazon.com/s?k=${customAmazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 Search Amazon</a>`
+        : '';
+      html += `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);${isChecked ? 'opacity:0.8' : ''}">
+        <div class="shop-check ${isChecked ? 'checked' : ''}" onclick="${onClickFn}" style="flex-shrink:0;margin-top:2px">${isChecked ? '✓' : ''}</div>
         <div style="flex:1;min-width:0">
           <div style="font-family:var(--font-head);font-weight:600;font-size:0.88rem;${isChecked ? 'text-decoration:line-through;color:var(--text-muted)' : ''}">${item.taskName}${matchNote}</div>
           <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-top:2px">${item.equipName}</div>
+          ${customAmazonBtn}
         </div>
         <button onclick="removeCustomShopItem('${item.key}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:1rem;padding:2px 6px;border-radius:4px;transition:color 0.15s" title="Remove" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button>
       </div>`;
@@ -2036,13 +2052,18 @@ function renderShopping() {
         : serviceStatus === 'soon'
         ? `<span style="font-size:0.7rem;font-weight:700;background:var(--amber);color:white;border-radius:4px;padding:1px 7px;margin-left:6px">DUE SOON</span>`
         : '';
-      return `<div class="shop-item" style="${checked ? 'opacity:0.45' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
+      const amazonQuery = encodeURIComponent((oemNum ? oemNum + ' ' : '') + p.part);
+      const amazonBtn = checked
+        ? `<a href="https://www.amazon.com/s?k=${amazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:5px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em;transition:background 0.15s" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 Search Amazon</a>`
+        : '';
+      return `<div class="shop-item" style="${checked ? 'opacity:0.8' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
         <div class="shop-check ${checked ? 'checked' : ''}" onclick="toggleCheck('${key}')">${checked ? '✓' : ''}</div>
         <div class="shop-item-body">
           <div class="shop-item-name" style="${checked ? 'text-decoration:line-through' : ''}">${p.part}${urgencyBar}</div>
           ${oemNum ? `<div class="shop-item-oem">#${oemNum}</div>` : ''}
           <div class="shop-item-meta" style="margin-top:4px">${p.notes || ''}</div>
           ${p.where ? `<div class="shop-item-where">🛒 ${p.where}</div>` : ''}
+          ${amazonBtn}
         </div>
       </div>`;
     }
