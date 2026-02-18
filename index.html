@@ -1778,13 +1778,24 @@ function openAmazonExport() {
   lines.push('═'.repeat(48));
 
   let totalItems = 0;
+
+  // Include custom To-Do items that are checked
+  const checkedCustom = customShopItems.filter(i => i.checked);
+  if (checkedCustom.length) {
+    lines.push('');
+    lines.push('FROM TO-DO LIST');
+    lines.push('─'.repeat(36));
+    checkedCustom.forEach(i => {
+      lines.push('• ' + i.taskName + '  (' + i.equipName + ')');
+      totalItems++;
+    });
+  }
+
+  // Include parts reference items that are checked
   data.equipment.forEach(eq => {
-    // Only include parts that need service AND are unchecked
     const needed = eq.parts.filter(p => {
       const key = eq.id + '_' + p.id;
-      const isChecked = checkedParts[key];
-      const needsService = partNeedsServiceLocal(eq.id, p.part);
-      return needsService && !isChecked;
+      return !!checkedParts[key];
     });
     if (!needed.length) return;
 
@@ -1802,7 +1813,7 @@ function openAmazonExport() {
   });
 
   if (totalItems === 0) {
-    lines = ['All parts have been checked off — nothing left to order!'];
+    lines = ["Nothing checked off yet — tick the checkboxes next to what you need to buy, then export."];
   } else {
     lines.push('');
     lines.push('═'.repeat(48));
