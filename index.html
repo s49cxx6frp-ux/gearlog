@@ -2528,7 +2528,6 @@ function renderShopping() {
       const logPurchaseBtn = checked
         ? `<button onclick="openLogPartPrefilled_byKey('${key}')" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;margin-left:6px;padding:5px 10px;background:none;border:1px solid var(--border-bright);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);cursor:pointer;letter-spacing:0.04em;transition:all 0.15s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-muted)'">💰 Log Purchase</button>`
         : '';
-      const isKit = !!KIT_COMPONENTS[key]; // kit rows never get struck through — they're the replacement
       if (isReplacedByKit) {
         return `<div class="shop-item" style="opacity:0.45">
           <div class="shop-check checked" style="cursor:default">✓</div>
@@ -2538,10 +2537,10 @@ function renderShopping() {
           </div>
         </div>`;
       }
-      return `<div class="shop-item" style="${checked && !isKit ? 'opacity:0.8' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
+      return `<div class="shop-item" style="${checked ? 'opacity:0.8' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
         <div class="shop-check ${checked ? 'checked' : ''}" onclick="toggleCheck('${key}')">${checked ? '✓' : ''}</div>
         <div class="shop-item-body">
-          <div class="shop-item-name" style="${checked && !isKit ? 'text-decoration:line-through' : ''}">${p.part}${urgencyBar}</div>
+          <div class="shop-item-name" style="${checked ? 'text-decoration:line-through' : ''}">${p.part}${urgencyBar}</div>
           ${oemNum ? `<div class="shop-item-oem">#${oemNum}</div>` : ''}
           <div class="shop-item-meta" style="margin-top:4px">${p.notes || ''}</div>
           ${p.where ? `<div class="shop-item-where">🛒 ${p.where}</div>` : ''}
