@@ -15,35 +15,38 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%230a0e0a'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle'%3E⚙️%3C/text%3E%3C/svg%3E">
 
 <!-- Android / theme -->
-<meta name="theme-color" content="#0a0e0a">
+<meta name="theme-color" content="#F5821F">
 <meta name="mobile-web-app-capable" content="yes">
-<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;500;600;700;800&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0e0a;
-    --surface: #0f1510;
-    --surface2: #141c14;
-    --surface3: #1a2419;
-    --border: #1f2e1f;
-    --border-bright: #2d4a2d;
+    --bg: #111111;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --surface3: #2a2a2a;
+    --border: #333333;
+    --border-bright: #444444;
+    --orange: #F5821F;
+    --orange-dim: #d96d10;
+    --orange-dark: #b85c0d;
+    --orange-pale: rgba(245,130,31,0.1);
+    --orange-glow: rgba(245,130,31,0.15);
+    --amber: #F5821F;
+    --amber-pale: rgba(245,130,31,0.1);
+    --red: #e05252;
+    --red-pale: rgba(224,82,82,0.1);
     --green: #4ade80;
-    --green-dim: #22c55e;
     --green-dark: #16a34a;
-    --green-glow: rgba(74,222,128,0.15);
-    --green-pale: rgba(74,222,128,0.07);
-    --amber: #fbbf24;
-    --amber-pale: rgba(251,191,36,0.08);
-    --red: #f87171;
-    --red-pale: rgba(248,113,113,0.08);
-    --text: #e2ffe2;
-    --text-muted: #6b9e6b;
-    --text-light: #3d6b3d;
-    --shadow: 0 4px 32px rgba(0,0,0,0.6);
-    --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
-    --radius: 4px;
-    --font-head: 'Oxanium', sans-serif;
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-body: 'Inter', sans-serif;
+    --green-pale: rgba(74,222,128,0.08);
+    --text: #f0f0f0;
+    --text-muted: #999999;
+    --text-light: #666666;
+    --shadow: 0 4px 24px rgba(0,0,0,0.7);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.5);
+    --radius: 3px;
+    --font-head: 'Barlow Condensed', sans-serif;
+    --font-mono: 'Roboto Mono', monospace;
+    --font-body: 'Barlow', sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,118 +57,77 @@
     color: var(--text);
     min-height: 100vh;
     padding: 0;
-    /* Subtle grid texture */
-    background-image:
-      linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
-
-  /* Scanline overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.03) 2px,
-      rgba(0,0,0,0.03) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
   }
 
   /* Header */
   header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border-bright);
-    padding: 20px 40px;
+    background: #F5821F;
+    border-bottom: 4px solid #b85c0d;
+    padding: 16px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
     position: relative;
-    overflow: hidden;
-  }
-  header::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--green), transparent);
   }
   .brand h1 {
     font-family: var(--font-head);
-    font-size: 1.8rem;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-    color: var(--green);
-    text-shadow: 0 0 20px rgba(74,222,128,0.4);
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: #ffffff;
     text-transform: uppercase;
+    line-height: 1;
   }
   .brand p {
     font-family: var(--font-mono);
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    margin-top: 3px;
-    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.75);
+    margin-top: 4px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
   /* PWA install button */
   #pwaInstallBtn {
     display: none;
-    background: transparent;
-    color: var(--amber);
-    border: 1px solid var(--amber);
+    background: #ffffff;
+    color: var(--orange);
+    border: 2px solid #ffffff;
     border-radius: var(--radius);
-    padding: 9px 18px;
+    padding: 8px 16px;
     font-family: var(--font-head);
-    font-weight: 600;
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.2s;
-    animation: pulse-amber 2s infinite;
   }
-  #pwaInstallBtn:hover {
-    background: var(--amber-pale);
-    box-shadow: 0 0 16px rgba(251,191,36,0.25);
-  }
-  @keyframes pulse-amber {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0.3); }
-    50% { box-shadow: 0 0 0 6px rgba(251,191,36,0); }
-  }
+  #pwaInstallBtn:hover { background: rgba(255,255,255,0.85); }
 
   .btn-add-equipment {
-    background: transparent;
-    color: var(--green);
-    border: 1px solid var(--green-dim);
+    background: #111111;
+    color: #ffffff;
+    border: 2px solid #111111;
     border-radius: var(--radius);
-    padding: 9px 18px;
+    padding: 8px 16px;
     font-family: var(--font-head);
-    font-weight: 600;
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.2s;
   }
-  .btn-add-equipment:hover {
-    background: var(--green-glow);
-    box-shadow: 0 0 16px rgba(74,222,128,0.2);
-    border-color: var(--green);
-  }
+  .btn-add-equipment:hover { background: #2a2a2a; border-color: #2a2a2a; }
 
   /* Nav */
   .top-nav {
     background: var(--surface2);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 3px solid var(--border);
     display: flex;
-    padding: 0 24px;
+    padding: 0 16px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -175,20 +137,21 @@
   .top-nav-btn {
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
-    padding: 14px 20px;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -3px;
+    padding: 14px 18px;
     flex-shrink: 0;
     font-family: var(--font-head);
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text-muted);
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
     white-space: nowrap;
   }
-  .top-nav-btn.active { color: var(--green); border-bottom-color: var(--green); }
+  .top-nav-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
   .top-nav-btn:hover:not(.active) { color: var(--text); }
 
   /* Main layout */
@@ -202,25 +165,27 @@
   .summary-table, .garage-table, .log-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
   .summary-table th, .garage-table th, .log-table th {
     text-align: left;
-    padding: 10px 14px;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
+    padding: 11px 16px;
+    font-family: var(--font-head);
+    font-size: 0.85rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-light);
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
     background: var(--surface2);
-    border-bottom: 1px solid var(--border-bright);
+    border-bottom: 2px solid var(--border-bright);
     white-space: nowrap;
   }
   .summary-table td, .garage-table td, .log-table td {
-    padding: 12px 14px;
+    padding: 13px 16px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
     color: var(--text);
+    font-size: 0.95rem;
   }
   .summary-table tr:last-child td,
   .garage-table tr:last-child td,
@@ -230,11 +195,11 @@
     transition: background 0.1s;
   }
   .summary-table tbody tr:hover td,
-  .garage-table tbody tr:hover td { background: var(--green-pale); }
+  .garage-table tbody tr:hover td { background: rgba(245,130,31,0.05); }
   .summary-table tr.active-row td,
   .garage-table tr.active td {
-    background: rgba(74,222,128,0.06);
-    border-left: 2px solid var(--green);
+    background: rgba(245,130,31,0.06);
+    border-left: 3px solid var(--orange);
   }
 
   .equip-icon {
@@ -246,10 +211,10 @@
     border-radius: var(--radius);
     flex-shrink: 0;
   }
-  .card-name { font-family: var(--font-head); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.03em; color: var(--text); }
+  .card-name { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; letter-spacing: 0.03em; color: var(--text); text-transform: uppercase; }
   .card-sub { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
-  .stat-value { font-family: var(--font-mono); font-size: 0.9rem; color: var(--green); }
-  .stat-label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat-value { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--orange); }
+  .stat-label { font-family: var(--font-head); font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
   .card-btn {
     padding: 5px 10px;
@@ -365,7 +330,7 @@
     transition: color 0.15s, border-color 0.15s;
     white-space: nowrap;
   }
-  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab.active { color: var(--orange); border-bottom-color: var(--orange); }
   .tab:hover { color: var(--text-muted); }
   .tab-content { padding: 24px; display: none; }
   .tab-content.active { display: block; }
@@ -514,8 +479,8 @@
     outline: none;
   }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    border-color: var(--green-dim);
-    box-shadow: 0 0 0 2px rgba(74,222,128,0.1);
+    border-color: var(--orange);
+    box-shadow: 0 0 0 2px rgba(245,130,31,0.15);
   }
   .form-group select option { background: var(--surface2); }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -553,8 +518,8 @@
     transition: all 0.15s;
     color: var(--text-muted);
   }
-  .shop-filter-btn.active { background: var(--green-dark); border-color: var(--green-dim); color: #fff; }
-  .shop-filter-btn:hover:not(.active) { border-color: var(--green-dim); color: var(--green); }
+  .shop-filter-btn.active { background: var(--orange); border-color: var(--orange-dim); color: #fff; }
+  .shop-filter-btn:hover:not(.active) { border-color: var(--orange-dim); color: var(--orange); }
 
   .shop-section { margin-bottom: 20px; }
   .shop-section-title {
@@ -590,10 +555,10 @@
     font-size: 0.7rem;
     color: var(--bg);
   }
-  .shop-check.checked { background: var(--green-dark); border-color: var(--green); color: var(--bg); }
+  .shop-check.checked { background: var(--orange); border-color: var(--orange-dim); color: #fff; }
   .shop-item-body { flex: 1; }
-  .shop-item-name { font-family: var(--font-body); font-weight: 600; font-size: 0.88rem; margin-bottom: 2px; }
-  .shop-item-meta { font-size: 0.76rem; color: var(--text-muted); }
+  .shop-item-name { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.02em; }
+  .shop-item-meta { font-size: 0.82rem; color: var(--text-muted); }
   .shop-item-oem { font-family: var(--font-mono); font-size: 0.72rem; color: var(--amber); background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); border-radius: 2px; padding: 1px 6px; display: inline-block; margin-top: 4px; }
   .shop-item-where { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-light); margin-top: 3px; }
 
@@ -617,16 +582,16 @@
     transition: background 0.1s;
   }
   .todo-equip-header:hover { background: var(--surface3); }
-  .todo-equip-title { font-family: var(--font-head); font-weight: 700; font-size: 0.88rem; letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+  .todo-equip-title { font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; letter-spacing: 0.05em; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
   .todo-equip-count { font-family: var(--font-mono); font-size: 0.65rem; background: var(--red); color: white; border-radius: 2px; padding: 2px 7px; letter-spacing: 0.05em; }
-  .todo-equip-count.all-done { background: var(--green-dark); color: #fff; }
+  .todo-equip-count.all-done { background: var(--orange); color: #fff; }
   .todo-equip-collapse { color: var(--text-light); font-size: 0.8rem; transition: transform 0.2s; }
   .todo-tasks { padding: 0 18px; }
   .todo-task { padding: 12px 0; border-bottom: 1px solid var(--border); }
   .todo-task:last-child { border-bottom: none; }
   .todo-task-header { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
   .todo-task-icon { font-size: 1rem; flex-shrink: 0; }
-  .todo-task-name { font-family: var(--font-head); font-weight: 600; font-size: 0.85rem; letter-spacing: 0.03em; flex: 1; }
+  .todo-task-name { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.03em; flex: 1; }
   .todo-task-badge { font-family: var(--font-mono); font-size: 0.62rem; padding: 2px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
   .badge-due { background: var(--red-pale); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
   .badge-soon { background: var(--amber-pale); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
@@ -637,15 +602,15 @@
     padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--border);
     background: var(--surface2); transition: all 0.12s; user-select: none;
   }
-  .todo-subtask:hover { border-color: var(--green-dim); background: var(--green-pale); }
-  .todo-subtask.done { background: rgba(74,222,128,0.04); border-color: rgba(74,222,128,0.15); }
+  .todo-subtask:hover { border-color: var(--orange-dim); background: var(--orange-pale); }
+  .todo-subtask.done { background: rgba(245,130,31,0.06); border-color: rgba(245,130,31,0.2); }
   .todo-subtask.done .todo-subtask-label { text-decoration: line-through; color: var(--text-light); }
   .todo-subtask-check {
     width: 16px; height: 16px; border: 1px solid var(--border-bright); border-radius: 2px;
     flex-shrink: 0; display: flex; align-items: center; justify-content: center;
     font-size: 0.65rem; transition: all 0.12s;
   }
-  .todo-subtask.done .todo-subtask-check { background: var(--green-dark); border-color: var(--green); color: #fff; }
+  .todo-subtask.done .todo-subtask-check { background: var(--orange); border-color: var(--orange-dim); color: #fff; }
   .todo-subtask-label { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.04em; }
   .todo-progress {
     display: flex; align-items: center; gap: 10px;
@@ -653,16 +618,16 @@
     font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.06em;
   }
   .todo-progress-bar-wrap { flex: 1; height: 3px; background: var(--border-bright); border-radius: 0; overflow: hidden; }
-  .todo-progress-bar { height: 100%; background: var(--green-dim); transition: width 0.3s; box-shadow: 0 0 8px rgba(74,222,128,0.4); }
+  .todo-progress-bar { height: 100%; background: var(--orange); transition: width 0.3s; }
 
   /* Page headers */
   .section-heading {
     font-family: var(--font-head);
-    font-size: 1.2rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--green);
+    color: var(--orange);
     margin-bottom: 4px;
   }
   .section-sub {
@@ -708,11 +673,11 @@
   .reminder-status { display: inline-block; margin-top: 5px; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
   .status-due .reminder-status { background: var(--red); color: #fff; }
   .status-soon .reminder-status { background: var(--amber); color: var(--bg); }
-  .status-ok .reminder-status { background: var(--green-dark); color: #fff; }
+  .status-ok .reminder-status { background: #2a7a2a; color: #fff; }
 
   @media (max-width: 600px) {
-    header { padding: 16px 20px; }
-    .brand h1 { font-size: 1.4rem; }
+    header { padding: 14px 16px; }
+    .brand h1 { font-size: 1.7rem; }
     main { padding: 16px; }
     .form-row { grid-template-columns: 1fr; }
     .detail-header { padding: 14px 16px; }
@@ -918,6 +883,64 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalAddEquipment')">Cancel</button>
       <button class="btn btn-primary" onclick="saveEquipment()">Add Equipment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Equipment Modal -->
+<div class="modal-overlay" id="modalEditEquipment">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit Equipment</h3>
+      <button class="modal-close" onclick="closeModal('modalEditEquipment')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editEquipId">
+      <div class="form-group">
+        <label>Equipment Name</label>
+        <input type="text" id="editEquipName" placeholder="e.g. Honda Mower, Husqvarna 450X">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="editEquipType">
+            <option value="🌿 Lawn Mower">🌿 Lawn Mower</option>
+            <option value="✂️ String Trimmer">✂️ String Trimmer</option>
+            <option value="🍂 Leaf Blower">🍂 Leaf Blower</option>
+            <option value="🪚 Chainsaw">🪚 Chainsaw</option>
+            <option value="🌱 Tiller">🌱 Tiller</option>
+            <option value="🚜 Riding Mower">🚜 Riding Mower</option>
+            <option value="⚙️ Generator">⚙️ Generator</option>
+            <option value="🔧 Other">🔧 Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <input type="number" id="editEquipYear" placeholder="2022" min="1970" max="2030">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Engine (cc or HP)</label>
+          <input type="text" id="editEquipEngine" placeholder="e.g. 160cc, 6HP">
+        </div>
+        <div class="form-group">
+          <label>Serial / Model #</label>
+          <input type="text" id="editEquipSerial" placeholder="Optional">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Purchase Date</label>
+        <input type="date" id="editEquipDate">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="editEquipNotes" rows="3" placeholder="Engine specs, fuel mix, part numbers..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalEditEquipment')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditEquipment()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1178,9 +1201,14 @@ function seedDemo() {
         engine: 'Vanguard 6.5HP 205cc OHV',
         serial: '15 0406 88 06338',
         purchaseDate: '',
-        oilInterval: 'annual',
+        oilInterval: 999,
         trackHours: true,
         notes: 'Engine: B&S Vanguard 200 Series, 205cc single-cylinder OHV (mfg April 2015). Oil: Vanguard 15W-50 Full Synthetic (~18-20oz). Spark Plug: B&S #597383. Air Filter: #596760. Official Maintenance Kit #84006008 includes all parts + Sta-Bil. Change oil at first 5hrs break-in, then every 50hrs or annually.',
+        serviceIntervals: [
+          { task: 'Oil Change',  hours: 50,  icon: '🛢', note: 'Vanguard 15W-50 Full Synthetic, ~18-20oz. Change every 50hrs or annually, whichever comes first. First change at 5hrs break-in.' },
+          { task: 'Air Filter',  hours: 25,  icon: '💨', note: '#596760 cartridge — clean every 25hrs, replace annually. More frequently in dusty conditions.' },
+          { task: 'Spark Plug',  hours: 100, icon: '🔩', note: '#597383 — gap 0.030". Replace annually or every 100hrs.' },
+        ],
         maintenance: [
           { id: 'm10a', date: '2024-03-15', type: 'Oil Change', notes: 'Break-in oil change — Vanguard 15W-50 Full Synthetic', nextDue: '' },
           { id: 'm10b', date: '2024-03-15', type: 'Air Filter', notes: 'Break-in service', nextDue: '' },
@@ -1240,7 +1268,7 @@ function seedDemo() {
         engine: 'B&S 190cc OHV 8.5HP',
         serial: '',
         purchaseDate: '',
-        oilInterval: 999,
+        oilInterval: 'annual',
         trackHours: false,
         notes: 'Engine oil: SAE 30 or 10W-30, ~20oz capacity. Spark Plug: NGK BPR6ES #796112, gap 0.030". Air Filter #591334. ALSO: Check pump oil (non-detergent SAE 30, 4-6oz) seasonally. Flush pump with clean water after every use. Winterize: drain ALL water from pump to prevent freeze damage.',
         maintenance: [
@@ -1273,6 +1301,7 @@ function seedDemo() {
         purchaseDate: '',
         oilInterval: 999,
         trackHours: false,
+        annualService: true,
         notes: 'NO OIL CHANGES NEEDED — EXi series is check & add only. Use SAE 30 or 5W-30 synthetic. Parts: Spark Plug #692051 / 496018S (NGK BKR5E), Air Filter #593260. Maintenance Kit #84002441 includes both plus oil. Replace air filter & spark plug annually.',
         maintenance: [
           { id: 'm6a', date: '2024-04-01', type: 'Air Filter', notes: 'Break-in service', nextDue: '' },
@@ -1300,9 +1329,17 @@ function seedDemo() {
         engine: 'Champion 224cc OHV',
         serial: '',
         purchaseDate: '',
-        oilInterval: 'annual',
+        oilInterval: 999,
         trackHours: true,
         notes: 'Engine oil: 10W-30, ~0.6qt. Spark Plug: F6RTC #100009378, gap 0.028-0.031". Air Filter: foam/washable — clean with soap & water, re-oil. HYDRAULIC SYSTEM: AW46 fluid, ~4.5 gal tank. Change hydraulic filter at first 50hrs then annually. Retract ram fully before storage to protect rod.',
+        serviceIntervals: [
+          { task: 'Oil Change',        hours: 25,  icon: '🛢', note: 'Engine oil — 10W-30, ~0.6qt. Change every 25hrs or annually.' },
+          { task: 'Spark Plug',        hours: 100, icon: '🔩', note: 'F6RTC #100009378 — gap 0.028-0.031". Replace every 100hrs or annually.' },
+          { task: 'Air Filter',        hours: 100, icon: '💨', note: 'Foam/washable filter — clean every 25hrs, replace every 100hrs.' },
+          { task: 'Hydraulic Filter',  hours: 50,  icon: '🔧', note: 'Change at first 50hrs, then every 100hrs or annually. Fram PH9342 / Wix 51361.' },
+          { task: 'Hydraulic Oil',     hours: 100, icon: '🛢', note: 'AW46 hydraulic fluid — 4.5 gal tank. Change every 100hrs or if discolored/contaminated.' },
+          { task: 'Grease / Lube',     hours: 25,  icon: '⚙️', note: 'Lubricate wedge, beam, and all moving parts every 25hrs.' },
+        ],
         maintenance: [
           { id: 'm7a', date: '2024-01-20', type: 'Oil Change', notes: 'Break-in oil change — 10W-30', nextDue: '' },
           { id: 'm7b', date: '2024-01-20', type: 'Air Filter', notes: 'Break-in service — foam cleaned', nextDue: '' },
@@ -1367,9 +1404,18 @@ function seedDemo() {
         engine: 'B&S Intek 23HP 724cc V-Twin',
         serial: '',
         purchaseDate: '',
-        oilInterval: 'annual',
+        oilInterval: 999,
         trackHours: true,
         notes: 'Oil: SAE 30 or 10W-30 synthetic, ~48oz with filter. TWO spark plugs needed: #491055S (Champion RC12YC). Air Filter #273658S + Pre-Cleaner #272403S (do NOT oil pre-cleaner). Oil Filter: B&S #492056 / Wix 51056. Deck Belt #532144959, Drive Belt #532139776, Blades #532138971. Change oil BEFORE storage (not after season).',
+        serviceIntervals: [
+          { task: 'Oil Change',        hours: 25,  icon: '🛢', note: 'SAE 30 or 10W-30 synthetic, ~48oz with filter. Change every 25hrs. Always change before storage.' },
+          { task: 'Oil Filter',        hours: 50,  icon: '🔧', note: 'B&S #492056 / Wix 51056. Replace every 50hrs or every other oil change.' },
+          { task: 'Spark Plug',        hours: 100, icon: '🔩', note: 'TWO plugs — #491055S (Champion RC12YC). Replace annually or every 100hrs.' },
+          { task: 'Air Filter',        hours: 100, icon: '💨', note: '#273658S cartridge + #272403S pre-cleaner. Replace annually or every 100hrs. Do NOT oil pre-cleaner.' },
+          { task: 'Blade Sharpen',     hours: 25,  icon: '🔪', note: 'Inspect and sharpen every 25hrs or each season. Replace #532138971 blades when worn.' },
+          { task: 'Grease / Lube',     hours: 25,  icon: '⚙️', note: 'Grease spindle zerks, front wheel bearing zerks every 25hrs with general-purpose grease.' },
+          { task: 'Belt Inspection',   hours: 100, icon: '🔗', note: 'Check deck belt #532144959 and drive belt #532139776 for wear/cracking every 100hrs.' },
+        ],
         maintenance: [
           { id: 'm8a', date: '2024-04-05', type: 'Oil Change', notes: 'Break-in oil change — 10W-30 synthetic, oil filter replaced', nextDue: '' },
           { id: 'm8b', date: '2024-04-05', type: 'Air Filter', notes: 'Break-in service — primary and pre-cleaner', nextDue: '' },
@@ -1401,9 +1447,31 @@ function seedDemo() {
   save(demo);
 }
 
+// ---------- Data hygiene ----------
+function deduplicateRefParts() {
+  // One-time cleanup: remove duplicate cost=0 parts (same name) from each equipment
+  const data = load();
+  let changed = false;
+  data.equipment.forEach(eq => {
+    const seen = new Map();
+    const cleaned = [];
+    eq.parts.forEach(p => {
+      const cost = parseFloat(p.cost) || 0;
+      if (cost > 0) { cleaned.push(p); return; } // always keep purchased entries
+      const key = p.part.trim().toLowerCase();
+      if (!seen.has(key)) { seen.set(key, true); cleaned.push(p); }
+      else { changed = true; } // duplicate found — skip it
+    });
+    eq.parts = cleaned;
+  });
+  if (changed) save(data);
+}
+
 // ---------- Render ----------
 function renderAll() {
   seedDemo();
+  deduplicateRefParts();
+  rebuildKitMaps();
   const data = load();
   renderEquipmentGrid(data);
   if (currentEquipId) renderDetail();
@@ -1462,6 +1530,7 @@ function renderEquipmentGrid(data) {
           <button class="card-btn" onclick="selectEquipment('${eq.id}'); openLogMaintenance()">+ Maint.</button>
           ${eq.trackHours ? `<button class="card-btn" onclick="selectEquipment('${eq.id}'); openLogHours()">+ Hrs</button>` : ''}
           <button class="card-btn" onclick="selectEquipment('${eq.id}'); openLogPart()">+ Parts</button>
+          <button class="card-btn" style="color:var(--text-muted)" onclick="openEditEquipment('${eq.id}')">✏️ Edit</button>
         </div>
       </td>
     </tr>`;
@@ -1472,6 +1541,8 @@ function renderEquipmentGrid(data) {
 let currentPage = 'garage';
 let shopFilter = 'all';
 let checkedParts = JSON.parse(localStorage.getItem('gearlog_checked') || '{}');
+let shopExpandedState = {}; // persists across renderShopping calls
+let replacedByKit = {};    // compKey -> kitKey, marks individual parts replaced by a kit
 
 function switchPage(page) {
   currentPage = page;
@@ -1505,73 +1576,108 @@ function renderAlerts(data) {
 }
 
 // ---- Maintenance issue detection ----
+function getHoursSinceLastService(eq, taskType) {
+  // Returns hours elapsed since last log entry of a given type
+  const matches = eq.maintenance.filter(m => m.type === taskType).sort((a,b) => b.date.localeCompare(a.date));
+  if (!matches.length) return null;
+  const lastDate = matches[0].date;
+  const hoursAfter = eq.hours.filter(h => h.date > lastDate).reduce((s,h) => s + parseFloat(h.hours||0), 0);
+  return hoursAfter;
+}
+
 function getMaintenanceIssues(data) {
   const issues = [];
   const today = new Date();
+  // Track which tasks have already been flagged (avoid double-reporting via nextDue AND interval)
+  const flagged = new Set();
 
   data.equipment.forEach(eq => {
-    // 1. Oil change detection
-    if (eq.oilInterval === 'annual') {
-      // Annual oil change — check by date
-      const oilChanges = eq.maintenance.filter(m => m.type === 'Oil Change').sort((a,b)=>b.date.localeCompare(a.date));
-      if (oilChanges.length) {
-        const daysSince = Math.round((new Date() - new Date(oilChanges[0].date)) / 86400000);
-        if (daysSince >= 365) {
-          issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
-            detail: `Last changed ${daysSince} days ago — annual change due`,
+
+    // 1. Per-task hour-based intervals — only for machines with actual hour meters
+    if (eq.trackHours && eq.serviceIntervals && eq.serviceIntervals.length) {
+      eq.serviceIntervals.forEach(si => {
+        const key = eq.id + '|' + si.task;
+        const hoursSince = getHoursSinceLastService(eq, si.task);
+        const hasEverDone = eq.maintenance.some(m => m.type === si.task);
+        if (hoursSince !== null) {
+          const pct = hoursSince / si.hours;
+          if (pct >= 1) {
+            issues.push({ equip: eq.name, equipId: eq.id, task: si.task, icon: si.icon || '🔧',
+              detail: `${Math.round(hoursSince)}hrs since last service — interval: every ${si.hours}hrs`,
+              status: 'due' });
+            flagged.add(key);
+          } else if (pct >= 0.8) {
+            issues.push({ equip: eq.name, equipId: eq.id, task: si.task, icon: si.icon || '🔧',
+              detail: `${Math.round(hoursSince)}hrs since last — due at ${si.hours}hrs`,
+              status: 'soon' });
+            flagged.add(key);
+          }
+        } else if (eq.totalHours > si.hours && !hasEverDone) {
+          issues.push({ equip: eq.name, equipId: eq.id, task: si.task, icon: si.icon || '🔧',
+            detail: `Never logged — ${si.hours}hr interval exceeded (${eq.totalHours}hrs on machine)`,
             status: 'due' });
-        } else if (daysSince >= 300) {
-          issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
-            detail: `Last changed ${daysSince} days ago — annual change coming up`,
-            status: 'soon' });
+          flagged.add(key);
         }
-      } else {
-        issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
-          detail: 'No oil change logged — annual change required',
-          status: 'due' });
-      }
-    } else if (eq.oilInterval && eq.oilInterval < 999) {
-      const hoursSince = getHoursSinceLastOilChange(eq);
-      if (hoursSince !== null) {
-        const pct = hoursSince / eq.oilInterval;
-        if (pct >= 1) {
+      });
+    }
+
+    // 2. Legacy oil change detection (for equipment without hour-based serviceIntervals)
+    if (!eq.trackHours || !eq.serviceIntervals || !eq.serviceIntervals.some(si => si.task === 'Oil Change')) {
+      if (eq.oilInterval === 'annual') {
+        const oilChanges = eq.maintenance.filter(m => m.type === 'Oil Change').sort((a,b)=>b.date.localeCompare(a.date));
+        if (oilChanges.length) {
+          const daysSince = Math.round((new Date() - new Date(oilChanges[0].date)) / 86400000);
+          if (daysSince >= 365) {
+            issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
+              detail: `Last changed ${daysSince} days ago — annual change due`, status: 'due' });
+          } else if (daysSince >= 300) {
+            issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
+              detail: `Last changed ${daysSince} days ago — annual change coming up`, status: 'soon' });
+          }
+        } else {
           issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
-            detail: `${Math.round(hoursSince)}hrs since last change (interval: ${eq.oilInterval}hrs)`,
-            status: 'due' });
-        } else if (pct >= 0.8) {
-          issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
-            detail: `${Math.round(hoursSince)}hrs since last change (interval: ${eq.oilInterval}hrs)`,
-            status: 'soon' });
+            detail: 'No oil change logged — annual change required', status: 'due' });
         }
-      } else if (eq.totalHours > 0) {
-        issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
-          detail: `No oil change logged yet (${eq.totalHours}hrs on equipment)`,
-          status: 'due' });
+      } else if (eq.oilInterval && eq.oilInterval < 999) {
+        const hoursSince = getHoursSinceLastOilChange(eq);
+        if (hoursSince !== null) {
+          const pct = hoursSince / eq.oilInterval;
+          if (pct >= 1) {
+            issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
+              detail: `${Math.round(hoursSince)}hrs since last change (interval: ${eq.oilInterval}hrs)`, status: 'due' });
+          } else if (pct >= 0.8) {
+            issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
+              detail: `${Math.round(hoursSince)}hrs since last change (interval: ${eq.oilInterval}hrs)`, status: 'soon' });
+          }
+        } else if (eq.totalHours > 0) {
+          issues.push({ equip: eq.name, equipId: eq.id, task: 'Oil Change', icon: '🛢',
+            detail: `No oil change logged yet (${eq.totalHours}hrs on equipment)`, status: 'due' });
+        }
       }
     }
 
-    // 2. Next due date reminders from maintenance log
+    // 3. nextDue date reminders from maintenance log entries
     eq.maintenance.forEach(m => {
       if (!m.nextDue) return;
-      // Try to parse as date
       const d = new Date(m.nextDue);
       if (!isNaN(d)) {
         const diffDays = Math.round((d - today) / 86400000);
         if (diffDays < 0) {
           issues.push({ equip: eq.name, equipId: eq.id, task: m.type, icon: '🔧',
-            detail: `Was due ${Math.abs(diffDays)} days ago (${fmtDate(m.nextDue)})`,
-            status: 'due' });
+            detail: `Was due ${Math.abs(diffDays)} days ago (${fmtDate(m.nextDue)})`, status: 'due' });
         } else if (diffDays <= 14) {
           issues.push({ equip: eq.name, equipId: eq.id, task: m.type, icon: '🔧',
-            detail: `Due in ${diffDays} day${diffDays === 1 ? '' : 's'} (${fmtDate(m.nextDue)})`,
-            status: 'soon' });
+            detail: `Due in ${diffDays} day${diffDays === 1 ? '' : 's'} (${fmtDate(m.nextDue)})`, status: 'soon' });
         }
       }
     });
 
-    // 3. Annual service reminder — if any maintenance type hasn't been done in 365+ days
-    const annualChecks = ['Air Filter', 'Spark Plug', 'Fuel Filter', 'Fuel Filter (Pickup Body)', 'Tune-Up', 'Oil Filter', 'Hydraulic Oil', 'Hydraulic Filter', 'Blade Sharpen', 'Grease / Lube'];
+    // 4. Annual checks — only for equipment without per-task hour intervals for that task
+    const annualChecks = ['Air Filter', 'Spark Plug', 'Fuel Filter', 'Fuel Filter (Pickup Body)',
+      'Tune-Up', 'Oil Filter', 'Hydraulic Oil', 'Hydraulic Filter', 'Blade Sharpen', 'Grease / Lube'];
     annualChecks.forEach(checkType => {
+      // Skip if this task is already handled by hour-based serviceIntervals on a metered machine
+      if (eq.trackHours && eq.serviceIntervals && eq.serviceIntervals.some(si => si.task === checkType)) return;
       const matches = eq.maintenance.filter(m => m.type === checkType);
       if (!matches.length) return;
       const lastDone = matches.sort((a, b) => b.date.localeCompare(a.date))[0];
@@ -1584,7 +1690,13 @@ function getMaintenanceIssues(data) {
     });
   });
 
-  return issues;
+  // Deduplicate: if same task on same equipment appears multiple times, keep highest severity
+  const seen = new Map();
+  issues.forEach(i => {
+    const k = i.equipId + '|' + i.task;
+    if (!seen.has(k) || (i.status === 'due' && seen.get(k).status !== 'due')) seen.set(k, i);
+  });
+  return [...seen.values()];
 }
 
 // ---- Summary View ----
@@ -1598,7 +1710,7 @@ function saveCustomShop() {
 
 function addToShoppingList(key, taskName, equipName, equipId) {
   if (customShopItems.some(i => i.key === key)) return;
-  customShopItems.push({ key, taskName, equipName, equipId, checked: false, addedAt: new Date().toISOString() });
+  customShopItems.push({ key, taskName, equipName, equipId, checked: true, addedAt: new Date().toISOString() });
   saveCustomShop();
   renderReminders(); // re-render todo so button flips to "✓ On shopping list"
   // Flash feedback
@@ -1625,8 +1737,43 @@ function saveTodo() {
 }
 
 function toggleTodo(key) {
-  todoChecked[key] = !todoChecked[key];
+  const wasChecked = !!todoChecked[key];
+  todoChecked[key] = !wasChecked;
   saveTodo();
+
+  // When checking an _install key, auto-log it to the maintenance record
+  if (!wasChecked && key.endsWith('_install')) {
+    // Key format: equipId_taskName_install
+    // equipId is always 2-3 chars like 'e1', task can have spaces/slashes
+    const withoutSuffix = key.slice(0, key.lastIndexOf('_install'));
+    // equipId is everything up to the first underscore
+    const firstUnderscore = withoutSuffix.indexOf('_');
+    const equipId = withoutSuffix.slice(0, firstUnderscore);
+    const taskName = withoutSuffix.slice(firstUnderscore + 1);
+
+    const data = load();
+    const eq = data.equipment.find(e => e.id === equipId);
+    if (eq) {
+      // Don't duplicate — check if same task was already logged today
+      const todayStr = today();
+      const alreadyLogged = eq.maintenance.some(m =>
+        m.date === todayStr && m.type.toLowerCase() === taskName.toLowerCase() && m.auto
+      );
+      if (!alreadyLogged) {
+        const autoNextDue = shouldAutoNextDue(eq, taskName) ? oneYearOut(todayStr) : '';
+        eq.maintenance.push({
+          id: uid(),
+          date: todayStr,
+          type: taskName,
+          notes: 'Auto-logged from To-Do',
+          nextDue: autoNextDue,
+          auto: true
+        });
+        save(data);
+      }
+    }
+  }
+
   renderReminders();
 }
 
@@ -1708,7 +1855,7 @@ function renderReminders() {
         </div>
         <div style="padding-left:30px;margin-top:8px">
           ${alreadyOnList
-            ? '<span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--green);letter-spacing:0.04em">\u2713 On shopping list</span>'
+            ? '<button class="card-btn" style="font-size:0.72rem;color:var(--green);border-color:var(--green);padding:4px 10px" onclick="removeCustomShopItem(\'' + shopKey + '\')" title="Click to remove from shopping list">\u2713 On list \u2013 remove?</button>'
             : '<button class="card-btn" style="font-size:0.72rem;color:var(--amber);border-color:var(--amber);padding:4px 10px" onclick="addToShoppingList(\'' + shopKey + '\',\'' + issue.task + '\',\'' + group.name + '\',\'' + equipId + '\')">\u{1F6D2} + Shopping List</button>'
           }
         </div>
@@ -1721,9 +1868,9 @@ function renderReminders() {
           ${getIcon(data.equipment.find(e=>e.id===equipId)?.type||'')} ${group.name}
           <span class="todo-equip-count ${allDone ? 'all-done' : ''}">${allDone ? '✓ Done' : groupDone + '/' + groupSubtasks}</span>
         </div>
-        <span class="todo-equip-collapse" id="collapse-${equipId}">▼</span>
+        <span class="todo-equip-collapse" id="collapse-${equipId}" style="transform:rotate(-90deg)">▼</span>
       </div>
-      <div id="todo-tasks-${equipId}" class="todo-tasks">${tasksHtml}</div>
+      <div id="todo-tasks-${equipId}" class="todo-tasks" style="display:none">${tasksHtml}</div>
       <div class="todo-progress">
         <div class="todo-progress-bar-wrap"><div class="todo-progress-bar" style="width:${groupSubtasks > 0 ? Math.round(groupDone/groupSubtasks*100) : 0}%"></div></div>
         <span>${groupSubtasks > 0 ? Math.round(groupDone/groupSubtasks*100) : 0}% complete</span>
@@ -1731,7 +1878,24 @@ function renderReminders() {
     </div>`;
   });
 
+  // Snapshot which groups are currently expanded before replacing HTML
+  const expanded = new Set();
+  document.querySelectorAll('[id^="todo-tasks-"]').forEach(node => {
+    if (node.style.display !== 'none') expanded.add(node.id);
+  });
+
   el.innerHTML = html;
+
+  // Restore expanded state
+  expanded.forEach(id => {
+    const node = document.getElementById(id);
+    if (node) {
+      node.style.display = '';
+      const equipId = id.replace('todo-tasks-', '');
+      const arrow = document.getElementById('collapse-' + equipId);
+      if (arrow) arrow.style.transform = '';
+    }
+  });
 }
 
 function collapseAllTodo() {
@@ -1755,8 +1919,9 @@ function toggleShopGroup(equipId) {
   const items = document.getElementById('shop-items-' + equipId);
   const arrow = document.getElementById('shop-arrow-' + equipId);
   const hidden = items.style.display === 'none';
-  items.style.display = hidden ? '' : 'none';
-  if (arrow) arrow.style.transform = hidden ? '' : 'rotate(-90deg)';
+  items.style.display = hidden ? 'block' : 'none';
+  if (arrow) arrow.style.transform = hidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+  shopExpandedState['shop-items-' + equipId] = hidden; // true = now expanded
 }
 
 function openAmazonExport() {
@@ -1869,20 +2034,105 @@ function setShopFilter(f, btn) {
   renderShopping();
 }
 
-// Kit -> component relationships: kitPartId -> [componentPartIds]
-const KIT_COMPONENTS = {
-  'e1_p1d': ['e1_p1a', 'e1_p1b', 'e1_p1c'],   // MS171 Service Kit -> air filter, fuel filter, spark plug
-  'e3_p3d': ['e3_p3a', 'e3_p3b', 'e3_p3c'],   // MS271 Service Kit -> air filter, fuel filter, spark plug
-  'e4_p4d': ['e4_p4a', 'e4_p4b', 'e4_p4c'],   // Echo Tune-Up Kit -> air filter, fuel filter, spark plug
-  'e6_p6c': ['e6_p6a', 'e6_p6b'],              // Push Mower Kit -> air filter, spark plug
-  'e10_p10d': ['e10_p10a', 'e10_p10b', 'e10_p10c'], // Leaf Vac Kit -> air filter, spark plug, oil
-};
+// Kit relationships: defined by part name patterns, built dynamically from actual loaded data.
+// A "kit" part is one whose name contains 'kit' or 'tune-up kit'.
+// Its components are the non-kit parts for the same equipment whose names are substrings of the kit's notes.
+let KIT_COMPONENTS = {};   // kitKey -> [compKeys]
+let COMPONENT_TO_KIT = {}; // compKey -> kitKey
 
-// Reverse map: component -> kit (so checking all components can check the kit)
-const COMPONENT_TO_KIT = {};
-Object.entries(KIT_COMPONENTS).forEach(([kit, components]) => {
-  components.forEach(c => { COMPONENT_TO_KIT[c] = kit; });
-});
+function rebuildKitMaps() {
+  KIT_COMPONENTS = {};
+  COMPONENT_TO_KIT = {};
+  const data = load();
+  data.equipment.forEach(eq => {
+    const refParts = eq.parts.filter(p => (parseFloat(p.cost) || 0) === 0);
+    const kits = refParts.filter(p => /kit/i.test(p.part));
+    const nonKits = refParts.filter(p => !/kit/i.test(p.part));
+    kits.forEach(kit => {
+      const kitKey = eq.id + '_' + kit.id;
+      const kitNotes = (kit.notes || '').toLowerCase();
+      const kitPart = kit.part.toLowerCase();
+      // Find components: non-kit parts whose name appears in the kit's notes or part name
+      const compKeys = nonKits
+        .filter(p => {
+          const pn = p.part.toLowerCase();
+          // Check if this part's name is mentioned in the kit notes or kit part name
+          return kitNotes.includes(pn) || kitPart.includes(pn) ||
+            // Common keyword matches
+            (pn.includes('air filter') && (kitNotes.includes('air filter') || kitPart.includes('all'))) ||
+            (pn.includes('spark plug') && (kitNotes.includes('spark plug') || kitPart.includes('all'))) ||
+            (pn.includes('fuel filter') && (kitNotes.includes('fuel filter') || kitPart.includes('all'))) ||
+            (pn.includes('oil') && !pn.includes('filter') && kitNotes.includes('oil') && !pn.includes('hydraulic')) ;
+        })
+        .map(p => eq.id + '_' + p.id);
+      if (compKeys.length >= 2) {
+        KIT_COMPONENTS[kitKey] = compKeys;
+        compKeys.forEach(ck => { COMPONENT_TO_KIT[ck] = kitKey; });
+      }
+    });
+  });
+}
+
+let pendingKitSwitch = null; // { kitKey, compKeys, equipName, kitPartName, kitOemNum }
+
+function showKitPrompt(kitKey, compKeys) {
+  const firstUnderscore = kitKey.indexOf('_');
+  const equipId = kitKey.slice(0, firstUnderscore);
+  const kitPartId = kitKey.slice(firstUnderscore + 1);
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return;
+  const kitPart = eq.parts.find(p => p.id === kitPartId);
+  if (!kitPart) return;
+
+  const oemMatch = (kitPart.notes || '').match(/OEM[^—#]*#([\w\-]+)/i);
+  const oemNum = oemMatch ? oemMatch[1] : null;
+  const compNames = compKeys.map(ck => {
+    const cPartId = ck.slice(equipId.length + 1);
+    const cp = eq.parts.find(p => p.id === cPartId);
+    return cp ? cp.part : ck;
+  });
+
+  pendingKitSwitch = { kitKey, compKeys, equipId };
+
+  const body = document.getElementById('kitPromptBody');
+  body.innerHTML = `
+    <p style="margin:0 0 12px;font-size:0.95rem">You've checked all ${compKeys.length} individual parts for <strong>${eq.name}</strong>. A kit is available that includes everything:</p>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:14px">
+      <div style="font-family:var(--font-head);font-weight:700;font-size:1rem;margin-bottom:6px">${kitPart.part}</div>
+      ${oemNum ? `<div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--amber);margin-bottom:6px">#${oemNum}</div>` : ''}
+      <div style="font-size:0.8rem;color:var(--text-muted)">${kitPart.where || ''}</div>
+    </div>
+    <p style="margin:0;font-size:0.82rem;color:var(--text-muted)">Includes: ${compNames.join(', ')}</p>
+  `;
+  document.getElementById('modalKitPrompt').classList.add('visible');
+}
+
+function dismissKitPrompt() {
+  pendingKitSwitch = null;
+  document.getElementById('modalKitPrompt').classList.remove('visible');
+}
+
+function switchToKit() {
+  if (!pendingKitSwitch) return;
+  const { kitKey, compKeys, equipId } = pendingKitSwitch;
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  const kitPartId = kitKey.slice(equipId.length + 1);
+  const kitPart = eq ? eq.parts.find(p => p.id === kitPartId) : null;
+
+  // Mark individual components as replaced (strikethrough + note) rather than unchecking
+  compKeys.forEach(ck => {
+    checkedParts[ck] = true;        // keep checked so they stay visible
+    replacedByKit[ck] = kitKey;     // mark as replaced
+  });
+  // Check the kit itself
+  checkedParts[kitKey] = true;
+  localStorage.setItem('gearlog_checked', JSON.stringify(checkedParts));
+
+  dismissKitPrompt();
+  renderShopping();
+}
 
 function toggleCheck(key) {
   const newState = !checkedParts[key];
@@ -1895,17 +2145,54 @@ function toggleCheck(key) {
     });
   }
 
-  // If this is a component, check if all siblings are now checked -> auto-check kit
-  if (COMPONENT_TO_KIT[key]) {
+  // If this is a component, check if all siblings are now checked -> prompt kit upgrade
+  if (COMPONENT_TO_KIT[key] && newState) {
     const kitKey = COMPONENT_TO_KIT[key];
     const allChecked = KIT_COMPONENTS[kitKey].every(k => checkedParts[k]);
-    const noneChecked = KIT_COMPONENTS[kitKey].every(k => !checkedParts[k]);
-    if (allChecked) checkedParts[kitKey] = true;
-    if (noneChecked) checkedParts[kitKey] = false;
+    if (allChecked) {
+      // Defer prompt until after render so UI is visually updated first
+      setTimeout(() => showKitPrompt(kitKey, KIT_COMPONENTS[kitKey]), 150);
+    }
+  }
+  // If unchecking a component, also uncheck the kit
+  if (COMPONENT_TO_KIT[key] && !newState) {
+    checkedParts[COMPONENT_TO_KIT[key]] = false;
   }
 
   localStorage.setItem('gearlog_checked', JSON.stringify(checkedParts));
   renderShopping();
+}
+
+function openLogPartPrefilled_byKey(key) {
+  const firstUnderscore = key.indexOf('_');
+  const equipId = key.slice(0, firstUnderscore);
+  const partId = key.slice(firstUnderscore + 1);
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  const part = eq ? eq.parts.find(p => p.id === partId) : null;
+  if (eq && part) openLogPartPrefilled(eq, part);
+}
+
+function openLogPartPrefilled(eq, part) {
+  // Set the current equipment context
+  currentEquipId = eq.id;
+  // Pre-fill the modal fields
+  document.getElementById('pDate').value = today();
+  document.getElementById('pPart').value = part.part;
+  document.getElementById('pCost').value = '';
+  document.getElementById('pWhere').value = part.where || '';
+  // Pull OEM number into notes if present
+  const oemMatch = (part.notes || '').match(/OEM[^#]*#([\w\-]+)/i);
+  const oemRef = oemMatch ? 'OEM #' + oemMatch[1] + '. ' : '';
+  document.getElementById('pNotes').value = oemRef + (part.notes || '');
+  // Open with a banner indicating it came from shopping list
+  openModal('modalPart');
+  // Add a hint inside the modal header temporarily
+  const header = document.querySelector('#modalPart .modal-header h3');
+  if (header) {
+    header.textContent = '🛒 Log Purchase — ' + eq.name;
+    setTimeout(() => { header.textContent = 'Log Part / Cost'; }, 8000);
+  }
 }
 
 function clearChecked() {
@@ -1931,6 +2218,13 @@ function renderShopping() {
     el.innerHTML = '<p style="color:var(--text-muted)">No equipment added yet.</p>';
     return;
   }
+  // Rebuild kit maps from current data (part IDs may differ from seed defaults)
+  rebuildKitMaps();
+
+  // Snapshot expanded state from DOM before rebuild (updates persistent state)
+  document.querySelectorAll('[id^="shop-items-"]').forEach(div => {
+    shopExpandedState[div.id] = div.style.display !== 'none';
+  });
 
   // Get all current issues to cross-reference "needs service" state
   const issues = getMaintenanceIssues(data);
@@ -2001,10 +2295,12 @@ function renderShopping() {
       const matchNote = matchedPart
         ? `<span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--green);margin-left:6px;opacity:0.8">↔ synced with parts ref</span>`
         : '';
-      const customAmazonQuery = encodeURIComponent(item.taskName);
-      const customAmazonBtn = isChecked
-        ? `<a href="https://www.amazon.com/s?k=${customAmazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 Search Amazon</a>`
-        : '';
+      const matchedOem = matchedPart ? (matchedPart.notes || '').match(/OEM[^—#]*#([\w\-]+)/i) : null;
+      const matchedOemNum = matchedOem ? matchedOem[1] : null;
+      const customAmazonQuery = matchedOemNum
+        ? encodeURIComponent(matchedOemNum)
+        : encodeURIComponent(item.equipName + ' ' + item.taskName);
+      const customAmazonBtn = `<a href="https://www.amazon.com/s?k=${customAmazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 ${matchedOemNum ? '#' + matchedOemNum : 'Search Amazon'}</a>`;
       html += `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);${isChecked ? 'opacity:0.8' : ''}">
         <div class="shop-check ${isChecked ? 'checked' : ''}" onclick="${onClickFn}" style="flex-shrink:0;margin-top:2px">${isChecked ? '✓' : ''}</div>
         <div style="flex:1;min-width:0">
@@ -2018,13 +2314,81 @@ function renderShopping() {
     html += `</div></div>`;
   }
 
+  // Build a set of task names already in the To-Do amber box for each equipment
+  // so we can suppress duplicates in the parts reference sections below
+  const todoShopKeys = new Set(customShopItems.map(i => i.equipId + '|' + i.taskName.toLowerCase()));
+
   data.equipment.forEach(eq => {
-    const filtered = eq.parts.filter(p => partMatchesFilter(p.part, p.notes || ''));
+    // Only show reference parts (cost=0) — purchased entries live in the Parts tab history
+    // Deduplicate by part name (case-insensitive) — keep earliest entry
+    const refParts = eq.parts.filter(p => (parseFloat(p.cost) || 0) === 0);
+    const seen = new Map();
+    refParts.forEach(p => {
+      const key = p.part.trim().toLowerCase();
+      if (!seen.has(key)) seen.set(key, p);
+    });
+    const deduped = [...seen.values()];
+
+    // Kit display logic:
+    // - Kit is checked → show kit, suppress its individual components
+    // - Kit is NOT checked → show components, suppress the kit row
+    const dedupedIds = new Set(deduped.map(p => eq.id + '_' + p.id));
+    const suppressedComponents = new Set(); // component part IDs to hide (kit selected)
+    const suppressedKitIds = new Set();     // kit part IDs to hide (showing components instead)
+
+    Object.entries(KIT_COMPONENTS).forEach(([kitKey, compKeys]) => {
+      if (!kitKey.startsWith(eq.id + '_')) return;
+      const kitPartId = kitKey.slice(eq.id.length + 1);
+      const kitChecked = !!checkedParts[kitKey];
+      const hasComponents = compKeys.some(ck => dedupedIds.has(ck));
+      const anyReplaced = compKeys.some(ck => !!replacedByKit[ck]);
+      if (kitChecked && anyReplaced) {
+        // Kit selected via "switch to kit" — show both kit AND struck-through components
+        // (components render themselves as "replaced by kit", don't suppress them)
+      } else if (kitChecked) {
+        // Kit ticked manually — hide individual components
+        compKeys.forEach(ck => {
+          const cPartId = ck.slice(eq.id.length + 1);
+          suppressedComponents.add(cPartId);
+        });
+      } else if (hasComponents) {
+        // Components shown individually — hide the kit row
+        suppressedKitIds.add(kitPartId);
+      }
+    });
+
+    const filtered = deduped.filter(p =>
+      !suppressedComponents.has(p.id) &&
+      !suppressedKitIds.has(p.id) &&
+      partMatchesFilter(p.part, p.notes || '')
+    );
     if (!filtered.length) return;
 
-    // Split into needs-service and reference-only
-    const needsService = filtered.filter(p => partNeedsService(eq.id, p.part));
-    const refOnly = filtered.filter(p => !partNeedsService(eq.id, p.part));
+    // A part "needs service" but is already in the To-Do amber box — treat it as handled
+    function isHandledByTodo(partName) {
+      const pn = partName.toLowerCase();
+      for (const issue of issues) {
+        if (issue.equipId !== eq.id) continue;
+        if (!todoShopKeys.has(eq.id + '|' + issue.task.toLowerCase())) continue;
+        const task = issue.task.toLowerCase();
+        if (pn.includes(task) || task.includes(pn.split(' ')[0])) return true;
+        if ((pn.includes('air filter') || pn.includes('pre-cleaner')) && task === 'air filter') return true;
+        if (pn.includes('spark plug') && task === 'spark plug') return true;
+        if (pn.includes('fuel filter') && task.includes('fuel filter')) return true;
+        if (pn.includes('oil filter') && task === 'oil filter') return true;
+        if ((pn.includes('engine oil') || (pn.includes('oil') && !pn.includes('filter') && !pn.includes('hydraulic') && !pn.includes('pump'))) && task === 'oil change') return true;
+        if ((pn.includes('hydraulic oil') || pn.includes('hydraulic fluid') || pn.includes('aw46')) && task === 'hydraulic oil') return true;
+        if (pn.includes('hydraulic') && pn.includes('filter') && task === 'hydraulic filter') return true;
+        if ((pn.includes('blade') || pn.includes('sharpen')) && task === 'blade sharpen') return true;
+        if ((pn.includes('pump oil') || pn.includes('non-detergent')) && task === 'grease / lube') return true;
+      }
+      return false;
+    }
+
+    // Split into three explicitly exclusive buckets
+    const needsService = filtered.filter(p => partNeedsService(eq.id, p.part) && !isHandledByTodo(p.part));
+    const handledByTodo = filtered.filter(p => partNeedsService(eq.id, p.part) && isHandledByTodo(p.part));
+    const refOnly = filtered.filter(p => !partNeedsService(eq.id, p.part) && !isHandledByTodo(p.part));
 
     const shopSectionId = 'shop-items-' + eq.id;
     const serviceCount = needsService.length;
@@ -2037,14 +2401,15 @@ function renderShopping() {
         <span style="font-weight:700;font-size:1rem">${getIcon(eq.type)} ${eq.name}${countBadge} <span style="color:var(--text-light);font-weight:400;font-size:0.68rem;margin-left:6px">${eq.engine||''}</span></span>
         <span style="display:flex;align-items:center;gap:12px">
           <span style="color:var(--text-light);font-weight:400;font-size:0.82rem">${filtered.length} part${filtered.length>1?'s':''}</span>
-          <span id="shop-arrow-${eq.id}" style="color:var(--text-muted);font-size:0.85rem;transition:transform 0.2s">▼</span>
+          <span id="shop-arrow-${eq.id}" style="color:var(--text-muted);font-size:0.85rem;transition:transform 0.2s;transform:rotate(-90deg)">▼</span>
         </span>
       </div>
-      <div id="${shopSectionId}" style="padding:0 20px">`;
+      <div id="${shopSectionId}" style="padding:0 20px;display:none">`;
 
     function renderPart(p, serviceStatus) {
       const key = eq.id + '_' + p.id;
       const checked = checkedParts[key];
+      const isReplacedByKit = !!replacedByKit[key];
       const oemMatch = (p.notes || '').match(/OEM[^—#]*#([\w\-]+)/i);
       const oemNum = oemMatch ? oemMatch[1] : null;
       const urgencyBar = serviceStatus === 'due'
@@ -2052,10 +2417,23 @@ function renderShopping() {
         : serviceStatus === 'soon'
         ? `<span style="font-size:0.7rem;font-weight:700;background:var(--amber);color:white;border-radius:4px;padding:1px 7px;margin-left:6px">DUE SOON</span>`
         : '';
-      const amazonQuery = encodeURIComponent((oemNum ? oemNum + ' ' : '') + p.part);
-      const amazonBtn = checked
-        ? `<a href="https://www.amazon.com/s?k=${amazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:5px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em;transition:background 0.15s" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 Search Amazon</a>`
+      // Build a targeted Amazon query: OEM number is most precise; fall back to equipment + part name
+      const amazonQuery = oemNum
+        ? encodeURIComponent(oemNum)
+        : encodeURIComponent(eq.name + ' ' + p.part);
+      const amazonBtn = `<a href="https://www.amazon.com/s?k=${amazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:5px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em;transition:background 0.15s" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 ${oemNum ? '#' + oemNum : 'Search Amazon'}</a>`;
+      const logPurchaseBtn = checked
+        ? `<button onclick="openLogPartPrefilled_byKey('${key}')" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;margin-left:6px;padding:5px 10px;background:none;border:1px solid var(--border-bright);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);cursor:pointer;letter-spacing:0.04em;transition:all 0.15s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-muted)'">💰 Log Purchase</button>`
         : '';
+      if (isReplacedByKit) {
+        return `<div class="shop-item" style="opacity:0.45">
+          <div class="shop-check checked" style="cursor:default">✓</div>
+          <div class="shop-item-body">
+            <div class="shop-item-name" style="text-decoration:line-through">${p.part}</div>
+            <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--amber);margin-top:3px;letter-spacing:0.03em">↳ replaced by kit</div>
+          </div>
+        </div>`;
+      }
       return `<div class="shop-item" style="${checked ? 'opacity:0.8' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
         <div class="shop-check ${checked ? 'checked' : ''}" onclick="toggleCheck('${key}')">${checked ? '✓' : ''}</div>
         <div class="shop-item-body">
@@ -2063,7 +2441,7 @@ function renderShopping() {
           ${oemNum ? `<div class="shop-item-oem">#${oemNum}</div>` : ''}
           <div class="shop-item-meta" style="margin-top:4px">${p.notes || ''}</div>
           ${p.where ? `<div class="shop-item-where">🛒 ${p.where}</div>` : ''}
-          ${amazonBtn}
+          <div style="display:flex;flex-wrap:wrap;gap:0">${amazonBtn}${logPurchaseBtn}</div>
         </div>
       </div>`;
     }
@@ -2072,18 +2450,27 @@ function renderShopping() {
       html += `<div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--red);padding:10px 0 6px">⚠️ Needs Service</div>`;
       needsService.forEach(p => { html += renderPart(p, partNeedsService(eq.id, p.part)); });
     }
-    if (refOnly.length) {
+    const refSection = [...handledByTodo, ...refOnly];
+    if (refSection.length) {
       if (needsService.length) html += `<div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-light);padding:10px 0 6px">Parts Reference</div>`;
-      refOnly.forEach(p => { html += renderPart(p, null); });
+      refSection.forEach(p => { html += renderPart(p, null); });
     }
 
     html += `</div></div>`;
   });
 
   el.innerHTML = html || `<div style="text-align:center;padding:40px;color:var(--text-muted)">No parts match this filter.</div>`;
+
+  // Restore expanded/collapsed state after DOM rebuild
+  document.querySelectorAll('[id^="shop-items-"]').forEach(div => {
+    if (shopExpandedState[div.id] === true) {
+      div.style.display = 'block';
+      const equipId = div.id.replace('shop-items-', '');
+      const arrow = document.getElementById('shop-arrow-' + equipId);
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+    }
+  });
 }
-
-
 
 function getHoursSinceLastOilChange(eq) {
   const oils = eq.maintenance.filter(m => m.type === 'Oil Change').sort((a,b)=>b.date.localeCompare(a.date));
@@ -2259,14 +2646,84 @@ function openModal(id) { document.getElementById(id).classList.add('visible'); }
 function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
 
 function openAddEquipment() { openModal('modalAddEquipment'); }
-function openLogMaintenance() { if (!currentEquipId) return; document.getElementById('mDate').value = today(); openModal('modalMaintenance'); }
+function openLogMaintenance() {
+  if (!currentEquipId) return;
+  const d = today();
+  document.getElementById('mDate').value = d;
+  // Pre-fill nextDue with one year out if this equipment is calendar-based
+  const data = load();
+  const eq = data.equipment.find(e => e.id === currentEquipId);
+  const isCalendar = eq && (eq.trackHours === false || eq.oilInterval === 'annual' || eq.annualService === true);
+  const isHourBased = eq && eq.serviceIntervals && eq.serviceIntervals.length;
+  if (isCalendar && !isHourBased) {
+    document.getElementById('mNextDue').value = oneYearOut(d);
+  } else {
+    document.getElementById('mNextDue').value = '';
+  }
+  openModal('modalMaintenance');
+}
 function openLogHours() { if (!currentEquipId) return; document.getElementById('hDate').value = today(); openModal('modalHours'); }
 function openLogPart() { if (!currentEquipId) return; document.getElementById('pDate').value = today(); openModal('modalPart'); }
 
 function today() { return new Date().toISOString().slice(0,10); }
 function uid() { return Math.random().toString(36).slice(2,8); }
 
+// Returns a date string one year from a given date string (or today if omitted)
+function oneYearOut(fromDate) {
+  const d = fromDate ? new Date(fromDate) : new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+// Tasks that get annual service intervals on 2-stroke / calendar-based equipment
+const ANNUAL_SERVICE_TASKS = ['Air Filter', 'Spark Plug', 'Fuel Filter', 'Fuel Filter (Pickup Body)',
+  'Tune-Up', 'Oil Filter', 'Hydraulic Oil', 'Hydraulic Filter', 'Blade Sharpen', 'Grease / Lube', 'Oil Change'];
+
+function shouldAutoNextDue(eq, taskType) {
+  // Use annual next-due for: 2-stroke engines, 4-stroke no-meter engines, annual-interval machines
+  // NOT for machines with hour-based serviceIntervals — they track by hours
+  if (!eq) return false;
+  if (eq.serviceIntervals && eq.serviceIntervals.length) return false; // uses hour tracking
+  // Calendar-based: no hour meter (trackHours=false) OR annual oil interval
+  const isCalendarBased = eq.trackHours === false || eq.oilInterval === 'annual' || eq.annualService === true;
+  return isCalendarBased && ANNUAL_SERVICE_TASKS.some(t => t.toLowerCase() === taskType.toLowerCase());
+}
+
 // ---------- Save Actions ----------
+function openEditEquipment(equipId) {
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return;
+  document.getElementById('editEquipId').value = eq.id;
+  document.getElementById('editEquipName').value = eq.name || '';
+  document.getElementById('editEquipType').value = eq.type || '🔧 Other';
+  document.getElementById('editEquipYear').value = eq.year || '';
+  document.getElementById('editEquipEngine').value = eq.engine || '';
+  document.getElementById('editEquipSerial').value = eq.serial || '';
+  document.getElementById('editEquipDate').value = eq.purchaseDate || '';
+  document.getElementById('editEquipNotes').value = eq.notes || '';
+  openModal('modalEditEquipment');
+}
+
+function saveEditEquipment() {
+  const id = document.getElementById('editEquipId').value;
+  const name = document.getElementById('editEquipName').value.trim();
+  if (!name) { alert('Equipment name is required.'); return; }
+  const data = load();
+  const eq = data.equipment.find(e => e.id === id);
+  if (!eq) return;
+  eq.name = name;
+  eq.type = document.getElementById('editEquipType').value;
+  eq.year = document.getElementById('editEquipYear').value;
+  eq.engine = document.getElementById('editEquipEngine').value;
+  eq.serial = document.getElementById('editEquipSerial').value;
+  eq.purchaseDate = document.getElementById('editEquipDate').value;
+  eq.notes = document.getElementById('editEquipNotes').value;
+  save(data);
+  closeModal('modalEditEquipment');
+  renderAll();
+}
+
 function saveEquipment() {
   const name = document.getElementById('newEquipName').value.trim();
   if (!name) { alert('Please enter a name.'); return; }
@@ -2295,12 +2752,16 @@ function saveMaintenance() {
   const data = load();
   const eq = data.equipment.find(e=>e.id===currentEquipId);
   if (!eq) return;
+  const mDate = document.getElementById('mDate').value || today();
+  const mType = document.getElementById('mType').value;
+  const mNextDue = document.getElementById('mNextDue').value ||
+    (shouldAutoNextDue(eq, mType) ? oneYearOut(mDate) : '');
   eq.maintenance.push({
     id: uid(),
-    date: document.getElementById('mDate').value || today(),
-    type: document.getElementById('mType').value,
+    date: mDate,
+    type: mType,
     notes: document.getElementById('mNotes').value,
-    nextDue: document.getElementById('mNextDue').value,
+    nextDue: mNextDue,
   });
   save(data);
   closeModal('modalMaintenance');
@@ -2331,6 +2792,8 @@ function saveHours() {
 function savePart() {
   const part = document.getElementById('pPart').value.trim();
   if (!part) { alert('Enter part name.'); return; }
+  const cost = parseFloat(document.getElementById('pCost').value) || 0;
+  if (cost <= 0) { alert('Enter a cost greater than $0 to log a purchase.'); return; }
   const data = load();
   const eq = data.equipment.find(e=>e.id===currentEquipId);
   if (!eq) return;
@@ -2338,7 +2801,7 @@ function savePart() {
     id: uid(),
     date: document.getElementById('pDate').value || today(),
     part,
-    cost: parseFloat(document.getElementById('pCost').value)||0,
+    cost,
     where: document.getElementById('pWhere').value,
     notes: document.getElementById('pNotes').value,
   });
@@ -2443,5 +2906,22 @@ self.addEventListener('fetch', e => {
 // ---------- Init ----------
 renderAll();
 </script>
+
+<!-- Kit Upgrade Prompt Modal -->
+<div class="modal-overlay" id="modalKitPrompt" style="z-index:1100">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header" style="background:var(--amber-pale);border-bottom:2px solid var(--amber)">
+      <h3 style="color:var(--amber)">🛒 Kit Available</h3>
+      <button class="modal-close" onclick="dismissKitPrompt()">✕</button>
+    </div>
+    <div class="modal-body" id="kitPromptBody" style="padding:20px 24px">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="dismissKitPrompt()">No, keep individual parts</button>
+      <button class="btn btn-primary" id="kitPromptYes" onclick="switchToKit()" style="background:var(--amber);border-color:var(--amber)">Yes, switch to kit</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
