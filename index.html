@@ -706,6 +706,7 @@
   <button class="top-nav-btn active" id="nav-garage" onclick="switchPage('garage')">🏠 Garage</button>
   <button class="top-nav-btn" id="nav-reminders" onclick="switchPage('reminders')">✅ To-Do <span id="reminderBadge" style="display:none;background:#e04e4e;color:white;border-radius:10px;padding:1px 7px;font-size:0.72rem;margin-left:4px;"></span></button>
   <button class="top-nav-btn" id="nav-shopping" onclick="switchPage('shopping')">🛒 Shopping List</button>
+  <button class="top-nav-btn" id="nav-history" onclick="switchPage('history')">📅 History</button>
 </nav>
 
 <main>
@@ -748,6 +749,7 @@
         <div class="tab" onclick="switchTab('maintenance')">Maintenance</div>
         <div class="tab" onclick="switchTab('hours')">Runtime Hours</div>
         <div class="tab" onclick="switchTab('parts')">Parts & Costs</div>
+        <div class="tab" onclick="switchTab('qr')">📱 QR Label</div>
       </div>
 
       <!-- Overview -->
@@ -783,6 +785,18 @@
       <!-- Parts -->
       <div class="tab-content" id="tab-parts">
         <div id="partsContent"></div>
+      </div>
+
+      <!-- QR Label -->
+      <div class="tab-content" id="tab-qr">
+        <div id="qrContent" style="display:flex;flex-direction:column;align-items:center;padding:24px 20px;gap:20px">
+          <p style="color:var(--text-muted);font-size:0.88rem;text-align:center;max-width:320px;margin:0">
+            Scan this code to jump directly to this equipment's page in GearLog.
+          </p>
+          <div id="qrCanvas" style="background:white;padding:16px;border-radius:12px;border:1.5px solid var(--border)"></div>
+          <div id="qrLabel" style="text-align:center"></div>
+          <button class="btn btn-primary" onclick="printQrLabel()">🖨 Print Label</button>
+        </div>
       </div>
     </div>
   </div><!-- /page-garage -->
@@ -827,6 +841,29 @@
     </div>
     <div id="shoppingContent"></div>
   </div><!-- /page-shopping -->
+
+  <!-- ===== HISTORY PAGE ===== -->
+  <div class="page-view" id="page-history">
+    <div class="page-header">
+      <div>
+        <div class="section-heading">Service History</div>
+        <div class="section-sub">All maintenance, hours, and parts across your fleet — most recent first.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center">
+      <select id="historyEquipFilter" onchange="renderHistory()" style="font-family:var(--font-mono);font-size:0.8rem;padding:6px 10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;color:var(--text)">
+        <option value="">All Equipment</option>
+      </select>
+      <select id="historyTypeFilter" onchange="renderHistory()" style="font-family:var(--font-mono);font-size:0.8rem;padding:6px 10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;color:var(--text)">
+        <option value="">All Event Types</option>
+        <option value="maintenance">Maintenance</option>
+        <option value="hours">Hours Logged</option>
+        <option value="part">Part Purchase</option>
+      </select>
+      <span id="historyCount" style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);margin-left:4px"></span>
+    </div>
+    <div id="historyContent"></div>
+  </div><!-- /page-history -->
 
 </main>
 
@@ -983,6 +1020,18 @@
       <div class="form-group">
         <label>Next Service Due (date or hours)</label>
         <input type="text" id="mNextDue" placeholder="e.g. 2025-09-01 or 100hrs">
+      </div>
+      <div class="form-group">
+        <label>Photo <span style="color:var(--text-muted);font-weight:400;font-size:0.8rem">(optional)</span></label>
+        <input type="file" id="mPhoto" accept="image/*" capture="environment" style="display:none" onchange="previewMaintPhoto(this)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('mPhoto').click()" style="font-size:0.82rem;padding:6px 14px">📷 Add Photo</button>
+          <span id="mPhotoName" style="font-size:0.8rem;color:var(--text-muted)">No photo</span>
+        </div>
+        <div id="mPhotoPreview" style="margin-top:10px;display:none">
+          <img id="mPhotoImg" style="max-width:100%;max-height:180px;border-radius:8px;border:1.5px solid var(--border)" />
+          <button type="button" onclick="clearMaintPhoto()" style="display:block;margin-top:6px;background:none;border:none;color:var(--text-muted);font-size:0.78rem;cursor:pointer">✕ Remove photo</button>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1542,7 +1591,7 @@ let currentPage = 'garage';
 let shopFilter = 'all';
 let checkedParts = JSON.parse(localStorage.getItem('gearlog_checked') || '{}');
 let shopExpandedState = {}; // persists across renderShopping calls
-let replacedByKit = {};    // compKey -> kitKey, marks individual parts replaced by a kit
+let replacedByKit = JSON.parse(localStorage.getItem('gearlog_replaced_by_kit') || '{}');
 
 function switchPage(page) {
   currentPage = page;
@@ -1552,6 +1601,7 @@ function switchPage(page) {
   document.getElementById('nav-' + page).classList.add('active');
   if (page === 'reminders') renderReminders();
   if (page === 'shopping') renderShopping();
+  if (page === 'history') renderHistory();
 }
 
 function renderAlerts(data) {
@@ -1703,6 +1753,8 @@ function getMaintenanceIssues(data) {
 // ---- To-Do List View ----
 let todoChecked = JSON.parse(localStorage.getItem('gearlog_todo') || '{}');
 let customShopItems = JSON.parse(localStorage.getItem('gearlog_custom_shop') || '[]');
+// Migrate: ensure all to-do items default to checked (old saves may have checked:false)
+customShopItems.forEach(i => { if (i.checked === false || i.checked === undefined) i.checked = true; });
 
 function saveCustomShop() {
   localStorage.setItem('gearlog_custom_shop', JSON.stringify(customShopItems));
@@ -1712,7 +1764,16 @@ function addToShoppingList(key, taskName, equipName, equipId) {
   if (customShopItems.some(i => i.key === key)) return;
   customShopItems.push({ key, taskName, equipName, equipId, checked: true, addedAt: new Date().toISOString() });
   saveCustomShop();
-  renderReminders(); // re-render todo so button flips to "✓ On shopping list"
+  // Also pre-check the matching part key in checkedParts so it renders checked immediately
+  const data = load();
+  const matchedPart = findPartForTask(equipId, taskName);
+  if (matchedPart) {
+    const partKey = equipId + '_' + matchedPart.id;
+    checkedParts[partKey] = true;
+    localStorage.setItem('gearlog_checked', JSON.stringify(checkedParts));
+  }
+  renderReminders();
+  renderShopping();
   // Flash feedback
   const btn = event.target;
   btn.textContent = '✓ Added!';
@@ -1723,6 +1784,16 @@ function addToShoppingList(key, taskName, equipName, equipId) {
 function toggleCustomShopCheck(key) {
   const item = customShopItems.find(i => i.key === key);
   if (item) { item.checked = !item.checked; saveCustomShop(); renderShopping(); }
+}
+
+// Toggles a parts-reference checkbox AND its linked customShopItem together
+function toggleCheckAndItem(partKey, itemKey) {
+  const item = customShopItems.find(i => i.key === itemKey);
+  const newState = item ? !item.checked : !checkedParts[partKey];
+  checkedParts[partKey] = newState;
+  localStorage.setItem('gearlog_checked', JSON.stringify(checkedParts));
+  if (item) { item.checked = newState; saveCustomShop(); }
+  renderShopping();
 }
 
 function removeCustomShopItem(key) {
@@ -2121,14 +2192,33 @@ function switchToKit() {
   const kitPartId = kitKey.slice(equipId.length + 1);
   const kitPart = eq ? eq.parts.find(p => p.id === kitPartId) : null;
 
-  // Mark individual components as replaced (strikethrough + note) rather than unchecking
+  // Mark individual components as replaced (strikethrough in parts list)
   compKeys.forEach(ck => {
-    checkedParts[ck] = true;        // keep checked so they stay visible
-    replacedByKit[ck] = kitKey;     // mark as replaced
+    checkedParts[ck] = true;
+    replacedByKit[ck] = kitKey;
   });
-  // Check the kit itself
+  localStorage.setItem('gearlog_replaced_by_kit', JSON.stringify(replacedByKit));
+
+  // Check the kit in checkedParts
   checkedParts[kitKey] = true;
   localStorage.setItem('gearlog_checked', JSON.stringify(checkedParts));
+
+  // Add the kit as a pre-checked item in the "From To-Do" shopping box
+  if (kitPart && eq) {
+    const shopKey = kitKey; // use kitKey as the unique identifier
+    if (!customShopItems.some(i => i.key === shopKey)) {
+      customShopItems.push({
+        key: shopKey,
+        taskName: kitPart.part,
+        equipName: eq.name,
+        equipId,
+        checked: true,
+        isKit: true,
+        addedAt: new Date().toISOString()
+      });
+      saveCustomShop();
+    }
+  }
 
   dismissKitPrompt();
   renderShopping();
@@ -2211,6 +2301,29 @@ function partMatchesFilter(partName, notes) {
   return true;
 }
 
+// Global helper — find the reference part object for a given task name + equipId
+function findPartForTask(equipId, taskName) {
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return null;
+  const tn = taskName.toLowerCase();
+  const refParts = eq.parts.filter(p => (parseFloat(p.cost) || 0) === 0);
+  return refParts.find(p => {
+    const pn = p.part.toLowerCase();
+    if (pn.includes(tn) || tn.includes(pn.split(' ')[0])) return true;
+    if ((pn.includes('air filter') || pn.includes('pre-cleaner')) && tn === 'air filter') return true;
+    if (pn.includes('spark plug') && tn === 'spark plug') return true;
+    if (pn.includes('fuel filter') && (tn === 'fuel filter' || tn.includes('fuel filter'))) return true;
+    if (pn.includes('oil filter') && tn === 'oil filter') return true;
+    if ((pn.includes('engine oil') || (pn.includes('oil') && !pn.includes('filter') && !pn.includes('hydraulic') && !pn.includes('pump'))) && tn === 'oil change') return true;
+    if ((pn.includes('hydraulic oil') || pn.includes('hydraulic fluid') || pn.includes('aw46')) && tn === 'hydraulic oil') return true;
+    if (pn.includes('hydraulic') && pn.includes('filter') && tn === 'hydraulic filter') return true;
+    if ((pn.includes('blade') || pn.includes('sharpen')) && tn === 'blade sharpen') return true;
+    if ((pn.includes('pump oil') || pn.includes('non-detergent')) && tn === 'grease / lube') return true;
+    return false;
+  }) || null;
+}
+
 function renderShopping() {
   const data = load();
   const el = document.getElementById('shoppingContent');
@@ -2218,6 +2331,10 @@ function renderShopping() {
     el.innerHTML = '<p style="color:var(--text-muted)">No equipment added yet.</p>';
     return;
   }
+  // Normalize: to-do items are always pre-checked (fix stale checked:false from old sessions)
+  let customShopNeedsSave = false;
+  customShopItems.forEach(i => { if (!i.checked) { i.checked = true; customShopNeedsSave = true; } });
+  if (customShopNeedsSave) saveCustomShop();
   // Rebuild kit maps from current data (part IDs may differ from seed defaults)
   rebuildKitMaps();
 
@@ -2255,26 +2372,6 @@ function renderShopping() {
   let html = '';
 
   // ---- Helper: find the matching part in eq.parts for a given task name ----
-  function findPartForTask(equipId, taskName) {
-    const eq = data.equipment.find(e => e.id === equipId);
-    if (!eq) return null;
-    const tn = taskName.toLowerCase();
-    return eq.parts.find(p => {
-      const pn = p.part.toLowerCase();
-      if (pn.includes(tn) || tn.includes(pn.split(' ')[0])) return true;
-      if ((pn.includes('air filter') || pn.includes('pre-cleaner')) && tn === 'air filter') return true;
-      if (pn.includes('spark plug') && tn === 'spark plug') return true;
-      if (pn.includes('fuel filter') && (tn === 'fuel filter' || tn.includes('fuel filter'))) return true;
-      if (pn.includes('oil filter') && tn === 'oil filter') return true;
-      if ((pn.includes('engine oil') || (pn.includes('oil') && !pn.includes('filter') && !pn.includes('hydraulic') && !pn.includes('pump'))) && tn === 'oil change') return true;
-      if ((pn.includes('hydraulic oil') || pn.includes('hydraulic fluid') || pn.includes('aw46')) && tn === 'hydraulic oil') return true;
-      if (pn.includes('hydraulic') && pn.includes('filter') && tn === 'hydraulic filter') return true;
-      if ((pn.includes('blade') || pn.includes('sharpen')) && tn === 'blade sharpen') return true;
-      if ((pn.includes('pump oil') || pn.includes('non-detergent')) && tn === 'grease / lube') return true;
-      return false;
-    }) || null;
-  }
-
   // ---- Custom "From To-Do" items section ----
   if (customShopItems.length) {
     html += `<div style="background:var(--surface);border:1.5px solid var(--amber);border-radius:var(--radius);margin-bottom:22px;overflow:hidden;box-shadow:var(--shadow-sm)">
@@ -2288,17 +2385,22 @@ function renderShopping() {
       // Try to find a matching part in the reference list and share its checkedParts key
       const matchedPart = findPartForTask(item.equipId, item.taskName);
       const sharedKey = matchedPart ? item.equipId + '_' + matchedPart.id : null;
-      const isChecked = sharedKey ? !!checkedParts[sharedKey] : item.checked;
+      // item.checked is the source of truth; sync checkedParts so the parts reference section matches
+      if (sharedKey) {
+        checkedParts[sharedKey] = item.checked; // always enforce, not just when different
+        // (don't save to localStorage in a render loop — caller saves as needed)
+      }
+      const isChecked = item.checked;
       const onClickFn = sharedKey
-        ? `toggleCheck('${sharedKey}')`          // syncs with parts reference
-        : `toggleCustomShopCheck('${item.key}')`; // standalone fallback
+        ? `toggleCheckAndItem('${sharedKey}','${item.key}')`   // syncs both
+        : `toggleCustomShopCheck('${item.key}')`;              // standalone fallback
       const matchNote = matchedPart
         ? `<span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--green);margin-left:6px;opacity:0.8">↔ synced with parts ref</span>`
         : '';
       const matchedOem = matchedPart ? (matchedPart.notes || '').match(/OEM[^—#]*#([\w\-]+)/i) : null;
       const matchedOemNum = matchedOem ? matchedOem[1] : null;
       const customAmazonQuery = matchedOemNum
-        ? encodeURIComponent(matchedOemNum)
+        ? encodeURIComponent(item.equipName + ' ' + item.taskName + ' ' + matchedOemNum)
         : encodeURIComponent(item.equipName + ' ' + item.taskName);
       const customAmazonBtn = `<a href="https://www.amazon.com/s?k=${customAmazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 ${matchedOemNum ? '#' + matchedOemNum : 'Search Amazon'}</a>`;
       html += `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);${isChecked ? 'opacity:0.8' : ''}">
@@ -2417,14 +2519,16 @@ function renderShopping() {
         : serviceStatus === 'soon'
         ? `<span style="font-size:0.7rem;font-weight:700;background:var(--amber);color:white;border-radius:4px;padding:1px 7px;margin-left:6px">DUE SOON</span>`
         : '';
-      // Build a targeted Amazon query: OEM number is most precise; fall back to equipment + part name
+      // Amazon query: model + part type + OEM# for best results
+      // e.g. "Stihl MS 171 Air Filter 1139-120-1602"
       const amazonQuery = oemNum
-        ? encodeURIComponent(oemNum)
+        ? encodeURIComponent(eq.name + ' ' + p.part.replace(/\(.*?\)/g,'').trim() + ' ' + oemNum)
         : encodeURIComponent(eq.name + ' ' + p.part);
       const amazonBtn = `<a href="https://www.amazon.com/s?k=${amazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:5px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em;transition:background 0.15s" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 ${oemNum ? '#' + oemNum : 'Search Amazon'}</a>`;
       const logPurchaseBtn = checked
         ? `<button onclick="openLogPartPrefilled_byKey('${key}')" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;margin-left:6px;padding:5px 10px;background:none;border:1px solid var(--border-bright);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);cursor:pointer;letter-spacing:0.04em;transition:all 0.15s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-muted)'">💰 Log Purchase</button>`
         : '';
+      const isKit = !!KIT_COMPONENTS[key]; // kit rows never get struck through — they're the replacement
       if (isReplacedByKit) {
         return `<div class="shop-item" style="opacity:0.45">
           <div class="shop-check checked" style="cursor:default">✓</div>
@@ -2434,10 +2538,10 @@ function renderShopping() {
           </div>
         </div>`;
       }
-      return `<div class="shop-item" style="${checked ? 'opacity:0.8' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
+      return `<div class="shop-item" style="${checked && !isKit ? 'opacity:0.8' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
         <div class="shop-check ${checked ? 'checked' : ''}" onclick="toggleCheck('${key}')">${checked ? '✓' : ''}</div>
         <div class="shop-item-body">
-          <div class="shop-item-name" style="${checked ? 'text-decoration:line-through' : ''}">${p.part}${urgencyBar}</div>
+          <div class="shop-item-name" style="${checked && !isKit ? 'text-decoration:line-through' : ''}">${p.part}${urgencyBar}</div>
           ${oemNum ? `<div class="shop-item-oem">#${oemNum}</div>` : ''}
           <div class="shop-item-meta" style="margin-top:4px">${p.notes || ''}</div>
           ${p.where ? `<div class="shop-item-where">🛒 ${p.where}</div>` : ''}
@@ -2557,7 +2661,7 @@ function renderDetail() {
   mBody.innerHTML = mSorted.length ? mSorted.map(m=>`<tr>
     <td>${fmtDate(m.date)}</td>
     <td><span class="badge badge-maintenance">${m.type}</span></td>
-    <td>${m.notes||'—'}</td>
+    <td>${m.notes||'—'}${m.photo ? `<br><img src="${m.photo}" onclick="this.style.maxHeight=this.style.maxHeight?'':'400px'" style="max-height:60px;max-width:120px;border-radius:6px;cursor:pointer;margin-top:6px;border:1px solid var(--border);transition:max-height 0.3s" title="Click to expand">` : ''}</td>
     <td>${m.nextDue||'—'}</td>
   </tr>`).join('') : '<tr><td colspan="4" class="no-logs"><div class="icon">🔧</div>No maintenance logged yet.</td></tr>';
 
@@ -2633,12 +2737,13 @@ function fmtDate(d) {
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach((t,i) => {
-    const tabs = ['overview','maintenance','hours','parts'];
+    const tabs = ['overview','maintenance','hours','parts','qr'];
     t.classList.toggle('active', tabs[i] === tab);
   });
   document.querySelectorAll('.tab-content').forEach(tc => {
     tc.classList.toggle('active', tc.id === 'tab-'+tab);
   });
+  if (tab === 'qr') renderQrTab();
 }
 
 // ---------- Modals ----------
@@ -2756,16 +2861,22 @@ function saveMaintenance() {
   const mType = document.getElementById('mType').value;
   const mNextDue = document.getElementById('mNextDue').value ||
     (shouldAutoNextDue(eq, mType) ? oneYearOut(mDate) : '');
-  eq.maintenance.push({
+  const entry = {
     id: uid(),
     date: mDate,
     type: mType,
     notes: document.getElementById('mNotes').value,
     nextDue: mNextDue,
-  });
+  };
+  // Attach photo if one was selected
+  if (pendingMaintPhoto) {
+    entry.photo = pendingMaintPhoto;
+  }
+  eq.maintenance.push(entry);
   save(data);
   closeModal('modalMaintenance');
   ['mNotes','mNextDue'].forEach(id=>document.getElementById(id).value='');
+  clearMaintPhoto();
   renderAll();
 }
 
@@ -2905,6 +3016,229 @@ self.addEventListener('fetch', e => {
 
 // ---------- Init ----------
 renderAll();
+
+// ============================================================
+// F6 — PHOTO ATTACHMENT
+// ============================================================
+let pendingMaintPhoto = null;
+
+function previewMaintPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingMaintPhoto = e.target.result;
+    document.getElementById('mPhotoName').textContent = file.name;
+    document.getElementById('mPhotoImg').src = e.target.result;
+    document.getElementById('mPhotoPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearMaintPhoto() {
+  pendingMaintPhoto = null;
+  document.getElementById('mPhoto').value = '';
+  document.getElementById('mPhotoName').textContent = 'No photo';
+  document.getElementById('mPhotoPreview').style.display = 'none';
+  document.getElementById('mPhotoImg').src = '';
+}
+
+// ============================================================
+// F7 — QR CODE LABELS
+// Uses qrcodejs loaded inline via CDN
+// ============================================================
+function renderQrTab() {
+  if (!currentEquipId) return;
+  const data = load();
+  const eq = data.equipment.find(e => e.id === currentEquipId);
+  if (!eq) return;
+
+  const baseUrl = window.location.origin + window.location.pathname;
+  const url = baseUrl + '?equipment=' + encodeURIComponent(currentEquipId);
+
+  const container = document.getElementById('qrCanvas');
+  container.innerHTML = '';
+
+  // Dynamically load qrcode.js if not already loaded
+  function generateQr() {
+    new QRCode(container, {
+      text: url,
+      width: 200,
+      height: 200,
+      colorDark: '#1a1a1a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+
+  if (typeof QRCode === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    script.onload = generateQr;
+    document.head.appendChild(script);
+  } else {
+    generateQr();
+  }
+
+  document.getElementById('qrLabel').innerHTML = `
+    <div style="font-family:var(--font-head);font-weight:700;font-size:1rem;margin-bottom:4px">${getIcon(eq.type)} ${eq.name}</div>
+    <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted)">${eq.engine || ''}</div>
+    ${eq.serial ? `<div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-top:2px">S/N: ${eq.serial}</div>` : ''}
+  `;
+}
+
+function printQrLabel() {
+  if (!currentEquipId) return;
+  const data = load();
+  const eq = data.equipment.find(e => e.id === currentEquipId);
+  const qrCanvas = document.getElementById('qrCanvas');
+  const img = qrCanvas.querySelector('img') || qrCanvas.querySelector('canvas');
+  if (!img) return;
+
+  const imgSrc = img.tagName === 'CANVAS' ? img.toDataURL() : img.src;
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>GearLog Label — ${eq.name}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+    .label { background: white; border: 2px solid #333; border-radius: 12px; padding: 20px 24px; text-align: center; width: 260px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+    .label img { width: 180px; height: 180px; }
+    .name { font-weight: 700; font-size: 1.05rem; margin: 10px 0 2px; }
+    .sub { font-size: 0.78rem; color: #666; font-family: monospace; }
+    .brand { font-size: 0.7rem; color: #e05c00; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 10px; }
+  </style></head><body>
+  <div class="label">
+    <div class="brand">GearLog</div>
+    <img src="${imgSrc}">
+    <div class="name">${eq.name}</div>
+    <div class="sub">${eq.engine || ''}</div>
+    ${eq.serial ? `<div class="sub">S/N: ${eq.serial}</div>` : ''}
+  </div>
+  <script>window.onload = () => { window.print(); }<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ============================================================
+// F1 — SERVICE HISTORY TIMELINE
+// ============================================================
+function renderHistory() {
+  const data = load();
+  const el = document.getElementById('historyContent');
+  if (!el) return;
+
+  // Populate equipment filter dropdown
+  const equipSelect = document.getElementById('historyEquipFilter');
+  const currentEquipVal = equipSelect.value;
+  equipSelect.innerHTML = '<option value="">All Equipment</option>' +
+    data.equipment.map(e => `<option value="${e.id}" ${currentEquipVal === e.id ? 'selected' : ''}>${e.name}</option>`).join('');
+
+  const equipFilter = equipSelect.value;
+  const typeFilter = document.getElementById('historyTypeFilter').value;
+
+  // Gather all events
+  let events = [];
+  data.equipment.forEach(eq => {
+    if (equipFilter && eq.id !== equipFilter) return;
+    eq.maintenance.forEach(m => {
+      if (typeFilter && typeFilter !== 'maintenance') return;
+      events.push({
+        date: m.date,
+        equipId: eq.id,
+        equipName: eq.name,
+        equipType: eq.type,
+        kind: 'maintenance',
+        icon: '🔧',
+        label: m.type,
+        notes: m.notes,
+        photo: m.photo || null,
+        id: m.id,
+      });
+    });
+    eq.hours.forEach(h => {
+      if (typeFilter && typeFilter !== 'hours') return;
+      events.push({
+        date: h.date,
+        equipId: eq.id,
+        equipName: eq.name,
+        equipType: eq.type,
+        kind: 'hours',
+        icon: '⏱',
+        label: `+${h.hours} hrs`,
+        notes: h.notes,
+        photo: null,
+        id: h.id,
+      });
+    });
+    eq.parts.forEach(p => {
+      if ((parseFloat(p.cost) || 0) === 0) return; // ref parts only, skip
+      if (typeFilter && typeFilter !== 'part') return;
+      events.push({
+        date: p.date || '',
+        equipId: eq.id,
+        equipName: eq.name,
+        equipType: eq.type,
+        kind: 'part',
+        icon: '🛒',
+        label: p.part,
+        notes: p.cost ? '$' + parseFloat(p.cost).toFixed(2) : '',
+        photo: null,
+        id: p.id,
+      });
+    });
+  });
+
+  // Sort newest first, filter out entries without dates
+  events = events.filter(e => e.date).sort((a,b) => b.date.localeCompare(a.date));
+
+  document.getElementById('historyCount').textContent = events.length + ' event' + (events.length !== 1 ? 's' : '');
+
+  if (!events.length) {
+    el.innerHTML = '<div style="text-align:center;padding:48px;color:var(--text-muted)">No history found.</div>';
+    return;
+  }
+
+  // Group by date
+  const byDate = {};
+  events.forEach(e => {
+    if (!byDate[e.date]) byDate[e.date] = [];
+    byDate[e.date].push(e);
+  });
+
+  const kindColors = {
+    maintenance: 'var(--green-dim)',
+    hours: 'var(--amber)',
+    part: 'var(--orange)',
+  };
+  const kindBg = {
+    maintenance: 'rgba(74,222,128,0.08)',
+    hours: 'var(--amber-pale)',
+    part: 'rgba(255,107,26,0.08)',
+  };
+
+  let html = '';
+  Object.entries(byDate).forEach(([date, dayEvents]) => {
+    html += `<div style="margin-bottom:22px">
+      <div style="font-family:var(--font-mono);font-size:0.75rem;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;padding:4px 0 10px;border-bottom:1px solid var(--border);margin-bottom:10px">${fmtDate(date)}</div>`;
+    dayEvents.forEach(ev => {
+      html += `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 14px;background:${kindBg[ev.kind]};border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="selectEquipment('${ev.equipId}')">
+        <div style="font-size:1.3rem;flex-shrink:0;margin-top:1px">${ev.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-family:var(--font-head);font-weight:700;font-size:0.9rem">${ev.label}</span>
+            <span style="font-size:0.72rem;background:${kindColors[ev.kind]};color:white;border-radius:10px;padding:1px 8px;opacity:0.85">${ev.kind}</span>
+          </div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px">${getIcon(ev.equipType)} ${ev.equipName}</div>
+          ${ev.notes ? `<div style="font-size:0.8rem;color:var(--text-light);margin-top:3px">${ev.notes}</div>` : ''}
+          ${ev.photo ? `<img src="${ev.photo}" onclick="event.stopPropagation();this.style.maxHeight=this.style.maxHeight?'':'400px'" style="max-height:60px;max-width:160px;border-radius:6px;cursor:pointer;margin-top:8px;border:1px solid var(--border);transition:max-height 0.3s" title="Click to expand">` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
 </script>
 
 <!-- Kit Upgrade Prompt Modal -->
