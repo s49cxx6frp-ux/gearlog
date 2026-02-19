@@ -1912,6 +1912,16 @@ function renderReminders() {
     if (!byEquip[issue.equipId]) byEquip[issue.equipId] = { name: issue.equip, issues: [] };
     byEquip[issue.equipId].issues.push(issue);
   });
+  // Also include equipment that has resolved installs but no remaining active issues
+  // so their progress bar still renders (showing 100% or partial progress)
+  resolvedInstallKeys.forEach(k => {
+    const firstUnderscore = k.indexOf('_');
+    const equipId = k.slice(0, firstUnderscore);
+    if (!byEquip[equipId]) {
+      const eq = data.equipment.find(e => e.id === equipId);
+      if (eq) byEquip[equipId] = { name: eq.name, issues: [] };
+    }
+  });
 
   // Total subtask progress — include resolved installs (they disappear from issues once logged)
   const currentInstallKeys = new Set(issues.map(i => i.equipId + '_' + i.task + '_install'));
@@ -2975,6 +2985,17 @@ function deleteMaintenance(equipId, maintId) {
   eq.maintenance = eq.maintenance.filter(m => m.id !== maintId);
   save(data);
   renderAll();
+}
+
+function deleteMaintenance(equipId, maintenanceId) {
+  if (!confirm('Delete this maintenance entry?')) return;
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return;
+  eq.maintenance = eq.maintenance.filter(m => m.id !== maintenanceId);
+  save(data);
+  renderAll();
+  renderReminders();
 }
 
 function deletePart(equipId, partId) {
