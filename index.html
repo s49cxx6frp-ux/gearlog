@@ -769,7 +769,7 @@
       <!-- Maintenance -->
       <div class="tab-content" id="tab-maintenance">
         <table class="log-table" id="maintenanceTable">
-          <thead><tr><th>Date</th><th>Type</th><th>Notes</th><th>Next Due</th></tr></thead>
+          <thead><tr><th>Date</th><th>Type</th><th>Notes</th><th>Next Due</th><th></th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -1877,10 +1877,11 @@ function renderReminders() {
     byEquip[issue.equipId].issues.push(issue);
   });
 
-  // Total subtask progress
+  // Total subtask progress — only count install keys that belong to CURRENT issues
   const totalSubtasks = issues.length;
-  const doneSubtasks = Object.keys(todoChecked).filter(k => k.endsWith('_install') && todoChecked[k]).length;
-  const pct = totalSubtasks > 0 ? Math.round((doneSubtasks / totalSubtasks) * 100) : 0;
+  const currentInstallKeys = new Set(issues.map(i => i.equipId + '_' + i.task + '_install'));
+  const doneSubtasks = [...currentInstallKeys].filter(k => todoChecked[k]).length;
+  const pct = totalSubtasks > 0 ? Math.min(100, Math.round((doneSubtasks / totalSubtasks) * 100)) : 0;
 
   let html = '';
 
@@ -1898,10 +1899,10 @@ function renderReminders() {
 
   Object.entries(byEquip).forEach(([equipId, group]) => {
     const groupSubtasks = group.issues.length;
-    const groupDone = group.issues.reduce((sum, issue) => {
+    const groupDone = Math.min(groupSubtasks, group.issues.reduce((sum, issue) => {
       const k2 = equipId + '_' + issue.task + '_install';
       return sum + (todoChecked[k2] ? 1 : 0);
-    }, 0);
+    }, 0));
     const allDone = groupDone === groupSubtasks;
 
     const tasksHtml = group.issues.map(issue => {
@@ -2232,7 +2233,14 @@ function toggleCheck(key) {
   if (KIT_COMPONENTS[key]) {
     KIT_COMPONENTS[key].forEach(compKey => {
       checkedParts[compKey] = newState;
+      // When unchecking the kit, restore components to interactive state
+      if (!newState) {
+        delete replacedByKit[compKey];
+      }
     });
+    if (!newState) {
+      localStorage.setItem('gearlog_replaced_by_kit', JSON.stringify(replacedByKit));
+    }
   }
 
   // If this is a component, check if all siblings are now checked -> prompt kit upgrade
@@ -2528,6 +2536,7 @@ function renderShopping() {
       const logPurchaseBtn = checked
         ? `<button onclick="openLogPartPrefilled_byKey('${key}')" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;margin-left:6px;padding:5px 10px;background:none;border:1px solid var(--border-bright);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);cursor:pointer;letter-spacing:0.04em;transition:all 0.15s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-muted)'">💰 Log Purchase</button>`
         : '';
+      const isKit = !!KIT_COMPONENTS[key]; // kit rows never get struck through — they're the replacement
       if (isReplacedByKit) {
         return `<div class="shop-item" style="opacity:0.45">
           <div class="shop-check checked" style="cursor:default">✓</div>
@@ -2537,10 +2546,10 @@ function renderShopping() {
           </div>
         </div>`;
       }
-      return `<div class="shop-item" style="${checked ? 'opacity:0.8' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
+      return `<div class="shop-item" style="${checked && !isKit ? 'opacity:0.8' : ''}${serviceStatus === 'due' ? ';border-left:3px solid var(--red);padding-left:12px' : serviceStatus === 'soon' ? ';border-left:3px solid var(--amber);padding-left:12px' : ''}">
         <div class="shop-check ${checked ? 'checked' : ''}" onclick="toggleCheck('${key}')">${checked ? '✓' : ''}</div>
         <div class="shop-item-body">
-          <div class="shop-item-name" style="${checked ? 'text-decoration:line-through' : ''}">${p.part}${urgencyBar}</div>
+          <div class="shop-item-name" style="${checked && !isKit ? 'text-decoration:line-through' : ''}">${p.part}${urgencyBar}</div>
           ${oemNum ? `<div class="shop-item-oem">#${oemNum}</div>` : ''}
           <div class="shop-item-meta" style="margin-top:4px">${p.notes || ''}</div>
           ${p.where ? `<div class="shop-item-where">🛒 ${p.where}</div>` : ''}
@@ -2662,7 +2671,8 @@ function renderDetail() {
     <td><span class="badge badge-maintenance">${m.type}</span></td>
     <td>${m.notes||'—'}${m.photo ? `<br><img src="${m.photo}" onclick="this.style.maxHeight=this.style.maxHeight?'':'400px'" style="max-height:60px;max-width:120px;border-radius:6px;cursor:pointer;margin-top:6px;border:1px solid var(--border);transition:max-height 0.3s" title="Click to expand">` : ''}</td>
     <td>${m.nextDue||'—'}</td>
-  </tr>`).join('') : '<tr><td colspan="4" class="no-logs"><div class="icon">🔧</div>No maintenance logged yet.</td></tr>';
+    <td><button onclick="deleteMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:2px 6px;border-radius:4px;transition:color 0.15s" title="Delete entry" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button></td>
+  </tr>`).join('') : '<tr><td colspan="5" class="no-logs"><div class="icon">🔧</div>No maintenance logged yet.</td></tr>';
 
   // Hours tab
   const hBody = document.querySelector('#hoursTable tbody');
@@ -2713,12 +2723,13 @@ function renderDetail() {
   if (purchasedParts.length) {
     const totalSpent = purchasedParts.reduce((s,p)=>s+(parseFloat(p.cost)||0),0);
     pHtml += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-light);margin:20px 0 12px">🧾 Purchase History — Total: $${totalSpent.toFixed(2)}</div>`;
-    pHtml += `<table class="log-table"><thead><tr><th>Date</th><th>Part</th><th>Notes</th><th>Cost</th></tr></thead><tbody>`;
+    pHtml += `<table class="log-table"><thead><tr><th>Date</th><th>Part</th><th>Notes</th><th>Cost</th><th></th></tr></thead><tbody>`;
     pHtml += [...purchasedParts].sort((a,b)=>b.date.localeCompare(a.date)).map(p=>`<tr>
       <td>${fmtDate(p.date)}</td>
       <td>${p.part}</td>
       <td>${p.notes||p.where||'—'}</td>
       <td>$${parseFloat(p.cost||0).toFixed(2)}</td>
+      <td><button onclick="deletePart('${eq.id}','${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:2px 6px;border-radius:4px;transition:color 0.15s" title="Delete entry" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button></td>
     </tr>`).join('');
     pHtml += '</tbody></table>';
   }
@@ -2850,6 +2861,26 @@ function saveEquipment() {
   ['newEquipName','newEquipYear','newEquipEngine','newEquipSerial','newEquipDate'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('newEquipOilInterval').value='50';
   selectEquipment(eq.id);
+}
+
+function deleteMaintenance(equipId, maintId) {
+  if (!confirm('Delete this maintenance entry?')) return;
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return;
+  eq.maintenance = eq.maintenance.filter(m => m.id !== maintId);
+  save(data);
+  renderAll();
+}
+
+function deletePart(equipId, partId) {
+  if (!confirm('Delete this part entry?')) return;
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return;
+  eq.parts = eq.parts.filter(p => p.id !== partId);
+  save(data);
+  renderAll();
 }
 
 function saveMaintenance() {
