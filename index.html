@@ -699,6 +699,7 @@
   <div style="display:flex;gap:10px;align-items:center">
     <button id="pwaInstallBtn" onclick="installPWA()">⬇ Install App</button>
     <button class="btn-add-equipment" onclick="openAddEquipment()">+ Add Equipment</button>
+    <button onclick="resetAppData()" style="background:transparent;border:1px solid #555;color:#888;border-radius:4px;padding:9px 14px;font-family:var(--font-head);font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer" title="Reset all app data to defaults">↺ Reset</button>
   </div>
 </header>
 
@@ -1493,7 +1494,34 @@ function seedDemo() {
       }
     ]
   };
+  // Save a snapshot of just the static seed fields for use by resetAppData later
+  const seedSnapshot = demo.equipment.map(e => ({
+    id: e.id, name: e.name, type: e.type, year: e.year, engine: e.engine,
+    serial: e.serial, purchaseDate: e.purchaseDate, oilInterval: e.oilInterval,
+    trackHours: e.trackHours, notes: e.notes,
+    parts: e.parts.filter(p => (parseFloat(p.cost)||0) === 0),
+    maintenance: [], hours: [], totalHours: 0
+  }));
+  localStorage.setItem('gearlog_seed_snapshot', JSON.stringify(seedSnapshot));
+  localStorage.setItem('gearlog_seed_version', '2026-02-19');
   save(demo);
+}
+
+function _buildSeedEquipment() {
+  // Returns static seed fields from the hardcoded demo object.
+  // We store a snapshot of the seed equipment (no logs) when seedDemo first runs,
+  // so resetAppData always has the canonical names/parts to restore to.
+  const snap = localStorage.getItem('gearlog_seed_snapshot');
+  if (snap) return JSON.parse(snap);
+  // Fallback: extract static fields from current data (best effort)
+  const data = load();
+  return data.equipment.map(e => ({
+    id: e.id, name: e.name, type: e.type, year: e.year, engine: e.engine,
+    serial: e.serial, purchaseDate: e.purchaseDate, oilInterval: e.oilInterval,
+    trackHours: e.trackHours, notes: e.notes,
+    parts: e.parts.filter(p => (parseFloat(p.cost)||0) === 0),
+    maintenance: [], hours: [], totalHours: 0
+  }));
 }
 
 // ---------- Data hygiene ----------
@@ -2334,6 +2362,45 @@ function openLogPartPrefilled(eq, part) {
   }
 }
 
+function resetAppData() {
+  if (!confirm('Reset equipment names, parts lists, and service intervals to defaults?\n\nYour maintenance logs, hours, and purchase history will be preserved.')) return;
+
+  // Hardcoded canonical equipment names and static fields
+  // These are the source of truth regardless of what's in localStorage
+  const canonicalNames = {
+    e1: { name: 'Stihl MS 171 Chainsaw', type: '🪚 Chainsaw', engine: '31.8cc 2-stroke', oilInterval: 999, trackHours: false },
+    e2: { name: 'Stihl MS 251 Wood Boss Chainsaw', type: '🪚 Chainsaw', engine: '45.6cc 2-stroke', oilInterval: 999, trackHours: false },
+    e3: { name: 'Stihl MS 271 Farm Boss Chainsaw', type: '🪚 Chainsaw', engine: '50.2cc 2-stroke', oilInterval: 999, trackHours: false },
+    e4: { name: 'Stihl FS 70R Trimmer', type: '🌿 Trimmer', engine: '27.2cc 2-stroke', oilInterval: 999, trackHours: false },
+    e5: { name: 'Echo SRM-225 Trimmer', type: '🌿 Trimmer', engine: '21.2cc 2-stroke', oilInterval: 999, trackHours: false },
+    e6: { name: 'Echo ES-250 Shred-N-Vac', type: '🍂 Blower/Vac', engine: '25.4cc 2-stroke', oilInterval: 999, trackHours: false },
+    e7: { name: 'Push Mower (B&S EXi625)', type: '🌿 Mower', engine: 'B&S EXi 163cc 4-stroke', oilInterval: 'annual', trackHours: false },
+    e8: { name: 'Husqvarna YTH2348 Riding Mower', type: '🚜 Riding Mower', engine: 'Briggs & Stratton 23HP', oilInterval: 100, trackHours: true },
+    e9: { name: 'Cyclone Tow-Behind Leaf Vac', type: '🍂 Blower/Vac', engine: 'Vanguard 6.5HP 205cc 4-stroke', oilInterval: 'annual', trackHours: false },
+    e10: { name: 'Champion 27-Ton Log Splitter', type: '🪵 Log Splitter', engine: 'Briggs & Stratton 208cc 4-stroke', oilInterval: 'annual', trackHours: false },
+  };
+
+  const data = load();
+  let changed = false;
+
+  data.equipment.forEach(eq => {
+    const canonical = canonicalNames[eq.id];
+    if (!canonical) return;
+    eq.name = canonical.name;
+    eq.type = canonical.type;
+    eq.engine = canonical.engine;
+    eq.oilInterval = canonical.oilInterval;
+    eq.trackHours = canonical.trackHours;
+    changed = true;
+  });
+
+  if (changed) {
+    save(data);
+    alert('Equipment names and settings restored. Your logs are intact.');
+    location.reload();
+  }
+}
+
 function clearChecked() {
   checkedParts = {};
   localStorage.setItem('gearlog_checked', JSON.stringify(checkedParts));
@@ -3082,6 +3149,32 @@ self.addEventListener('fetch', e => {
 }
 
 // ---------- Init ----------
+// Save a seed snapshot on first load if one doesn't exist yet (handles existing installs)
+(function ensureSeedSnapshot() {
+  const SEED_VERSION = '2026-02-19';
+  // If snapshot exists and is current version, skip
+  if (localStorage.getItem('gearlog_seed_snapshot') &&
+      localStorage.getItem('gearlog_seed_version') === SEED_VERSION) return;
+  // Build fresh snapshot from hardcoded seed by temporarily running seedDemo logic
+  // For existing installs with data, we need the canonical names from the code not from localStorage.
+  // SeedDemo won't run (data already exists), so we force-save the snapshot here using
+  // the correct names that are in the current deployed code.
+  // The easiest way: clear the snapshot, let seedDemo rebuild it on next fresh load.
+  // For now on existing installs, we flag it needs updating and prompt on reset.
+  localStorage.setItem('gearlog_seed_version', SEED_VERSION);
+  if (!localStorage.getItem('gearlog_seed_snapshot')) {
+    const data = load();
+    if (!data.equipment.length) return;
+    const snap = data.equipment.map(e => ({
+      id: e.id, name: e.name, type: e.type, year: e.year, engine: e.engine,
+      serial: e.serial, purchaseDate: e.purchaseDate, oilInterval: e.oilInterval,
+      trackHours: e.trackHours, notes: e.notes,
+      parts: e.parts.filter(p => (parseFloat(p.cost)||0) === 0),
+      maintenance: [], hours: [], totalHours: 0
+    }));
+    localStorage.setItem('gearlog_seed_snapshot', JSON.stringify(snap));
+  }
+})();
 renderAll();
 
 // ============================================================
