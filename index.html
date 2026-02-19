@@ -1877,10 +1877,11 @@ function renderReminders() {
     byEquip[issue.equipId].issues.push(issue);
   });
 
-  // Total subtask progress — only count install keys that belong to CURRENT issues
-  const totalSubtasks = issues.length;
+  // Total subtask progress — include resolved installs (they disappear from issues once logged)
   const currentInstallKeys = new Set(issues.map(i => i.equipId + '_' + i.task + '_install'));
-  const doneSubtasks = [...currentInstallKeys].filter(k => todoChecked[k]).length;
+  const resolvedInstallKeys = Object.keys(todoChecked).filter(k => k.endsWith('_install') && todoChecked[k] && !currentInstallKeys.has(k));
+  const totalSubtasks = issues.length + resolvedInstallKeys.length;
+  const doneSubtasks = resolvedInstallKeys.length + [...currentInstallKeys].filter(k => todoChecked[k]).length;
   const pct = totalSubtasks > 0 ? Math.min(100, Math.round((doneSubtasks / totalSubtasks) * 100)) : 0;
 
   let html = '';
@@ -1898,12 +1899,13 @@ function renderReminders() {
   </div>`;
 
   Object.entries(byEquip).forEach(([equipId, group]) => {
-    const groupSubtasks = group.issues.length;
-    const groupDone = Math.min(groupSubtasks, group.issues.reduce((sum, issue) => {
+    const groupResolvedKeys = resolvedInstallKeys.filter(k => k.startsWith(equipId + '_'));
+    const groupSubtasks = group.issues.length + groupResolvedKeys.length;
+    const groupDone = groupResolvedKeys.length + group.issues.reduce((sum, issue) => {
       const k2 = equipId + '_' + issue.task + '_install';
       return sum + (todoChecked[k2] ? 1 : 0);
-    }, 0));
-    const allDone = groupDone === groupSubtasks;
+    }, 0);
+    const allDone = groupSubtasks > 0 && groupDone === groupSubtasks;
 
     const tasksHtml = group.issues.map(issue => {
       const orderKey = equipId + '_' + issue.task + '_order';
