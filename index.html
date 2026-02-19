@@ -1753,8 +1753,8 @@ function getMaintenanceIssues(data) {
 // ---- To-Do List View ----
 let todoChecked = JSON.parse(localStorage.getItem('gearlog_todo') || '{}');
 let customShopItems = JSON.parse(localStorage.getItem('gearlog_custom_shop') || '[]');
-// Migrate: ensure all to-do items default to checked (old saves may have checked:false)
-customShopItems.forEach(i => { if (i.checked === false || i.checked === undefined) i.checked = true; });
+// Ensure items without a checked property default to true
+customShopItems.forEach(i => { if (i.checked === undefined) i.checked = true; });
 
 function saveCustomShop() {
   localStorage.setItem('gearlog_custom_shop', JSON.stringify(customShopItems));
@@ -1782,17 +1782,25 @@ function addToShoppingList(key, taskName, equipName, equipId) {
 }
 
 function toggleCustomShopCheck(key) {
+  // This is now just a fallback for items with no matched part.
+  // Most amber-box items have a matched part and use toggleCheckAndItem instead.
   const item = customShopItems.find(i => i.key === key);
-  if (item) { item.checked = !item.checked; saveCustomShop(); renderShopping(); }
+  if (!item) return;
+  item.checked = !item.checked;
+  saveCustomShop();
+  checkKitOpportunity(item.equipId);
+  renderShopping();
 }
 
-// Toggles a parts-reference checkbox AND its linked customShopItem together
+// Toggles a parts-reference checkbox AND its linked customShopItem together.
+// Used by amber-box items that have a matched part in the equipment reference list.
 function toggleCheckAndItem(partKey, itemKey) {
   const item = customShopItems.find(i => i.key === itemKey);
   const newState = item ? !item.checked : !checkedParts[partKey];
   checkedParts[partKey] = newState;
   localStorage.setItem('gearlog_checked', JSON.stringify(checkedParts));
   if (item) { item.checked = newState; saveCustomShop(); }
+  if (newState && item) checkKitOpportunity(item.equipId);
   renderShopping();
 }
 
@@ -2114,6 +2122,25 @@ function setShopFilter(f, btn) {
 let KIT_COMPONENTS = {};   // kitKey -> [compKeys]
 let COMPONENT_TO_KIT = {}; // compKey -> kitKey
 
+
+// Check whether all customShopItems for an equipment map to components of a known kit.
+// If so, prompt the user to switch to the kit.
+function checkKitOpportunity(equipId) {
+  rebuildKitMaps(); // ensure maps are current
+  const items = customShopItems.filter(i => i.equipId === equipId && !i.isKit && i.checked);
+  if (items.length < 2) return;
+  const compKeys = items.map(i => {
+    const m = findPartForTask(i.equipId, i.taskName);
+    return m ? equipId + '_' + m.id : null;
+  }).filter(Boolean);
+  if (compKeys.length < 2) return;
+  const kitKey = Object.keys(KIT_COMPONENTS).find(k =>
+    k.startsWith(equipId + '_') &&
+    compKeys.every(ck => KIT_COMPONENTS[k].includes(ck))
+  );
+  if (kitKey) setTimeout(() => showKitPrompt(kitKey, compKeys), 150);
+}
+
 function rebuildKitMaps() {
   KIT_COMPONENTS = {};
   COMPONENT_TO_KIT = {};
@@ -2231,35 +2258,47 @@ function toggleCheck(key) {
   const newState = !checkedParts[key];
   checkedParts[key] = newState;
 
-  // If this is a kit, sync all its components
+  // Parse equipId from key (format: equipId_partId)
+  const firstUnderscore = key.indexOf('_');
+  const equipId = firstUnderscore > 0 ? key.slice(0, firstUnderscore) : null;
+  const partId  = firstUnderscore > 0 ? key.slice(firstUnderscore + 1) : null;
+
+  // Sync the matching amber-box item (if any) using findPartForTask for reliable matching
+  if (equipId) {
+    const syncItem = customShopItems.find(i => {
+      if (i.equipId !== equipId) return false;
+      const m = findPartForTask(i.equipId, i.taskName);
+      return m && m.id === partId;
+    });
+    if (syncItem) { syncItem.checked = newState; saveCustomShop(); }
+  }
+
+  // Kit: if this IS a kit row, sync all its components
   if (KIT_COMPONENTS[key]) {
     KIT_COMPONENTS[key].forEach(compKey => {
       checkedParts[compKey] = newState;
-      // When unchecking the kit, restore components to interactive state
-      if (!newState) {
-        delete replacedByKit[compKey];
-      }
+      if (!newState) delete replacedByKit[compKey];
     });
-    if (!newState) {
-      localStorage.setItem('gearlog_replaced_by_kit', JSON.stringify(replacedByKit));
-    }
+    if (!newState) localStorage.setItem('gearlog_replaced_by_kit', JSON.stringify(replacedByKit));
   }
 
-  // If this is a component, check if all siblings are now checked -> prompt kit upgrade
+  // Kit: if this is a component and we just checked it, see if all siblings are now checked
   if (COMPONENT_TO_KIT[key] && newState) {
     const kitKey = COMPONENT_TO_KIT[key];
-    const allChecked = KIT_COMPONENTS[kitKey].every(k => checkedParts[k]);
-    if (allChecked) {
-      // Defer prompt until after render so UI is visually updated first
+    if (KIT_COMPONENTS[kitKey].every(k => checkedParts[k])) {
       setTimeout(() => showKitPrompt(kitKey, KIT_COMPONENTS[kitKey]), 150);
     }
   }
-  // If unchecking a component, also uncheck the kit
+  // Kit: unchecking a component also unchecks the kit
   if (COMPONENT_TO_KIT[key] && !newState) {
     checkedParts[COMPONENT_TO_KIT[key]] = false;
   }
 
   localStorage.setItem('gearlog_checked', JSON.stringify(checkedParts));
+
+  // Kit opportunity: check if amber-box items for this equipment all have matching parts checked
+  if (equipId && newState) checkKitOpportunity(equipId);
+
   renderShopping();
 }
 
@@ -2341,10 +2380,6 @@ function renderShopping() {
     el.innerHTML = '<p style="color:var(--text-muted)">No equipment added yet.</p>';
     return;
   }
-  // Normalize: to-do items are always pre-checked (fix stale checked:false from old sessions)
-  let customShopNeedsSave = false;
-  customShopItems.forEach(i => { if (!i.checked) { i.checked = true; customShopNeedsSave = true; } });
-  if (customShopNeedsSave) saveCustomShop();
   // Rebuild kit maps from current data (part IDs may differ from seed defaults)
   rebuildKitMaps();
 
