@@ -1207,7 +1207,8 @@ function seedDemo() {
         parts: [
           { id: 'p2a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #1141-120-1600 — same as MS271. Fits MS231/251/261/271/291/311/391.' },
           { id: 'p2b', date: '2025-01-01', part: 'Fuel Filter (Pickup Body)', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #0000-350-3518 — orange/red filter body. Same as MS271.' },
-          { id: 'p2c', date: '2025-01-01', part: 'Spark Plug NGK BPMR7A', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7000 — NGK BPMR7A. Same as MS271. Replace annually.' }
+          { id: 'p2c', date: '2025-01-01', part: 'Spark Plug NGK BPMR7A', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7000 — NGK BPMR7A. Same as MS271. Replace annually.' },
+          { id: 'p2d', date: '2025-01-01', part: 'Service Kit (all 3 parts)', cost: 0, where: 'Stihl Dealer', notes: 'OEM Kit #1141-007-1800 — bundles air filter, fuel filter, spark plug. Same as MS271.' }
         ],
         totalHours: 23
       },
@@ -1244,41 +1245,36 @@ function seedDemo() {
         totalHours: 26
       },
       {
-        id: 'e10',
-        name: 'Cyclone Tow-Behind Leaf Vac',
-        type: '🍂 Leaf Blower',
-        year: '2015',
-        engine: 'Vanguard 6.5HP 205cc OHV',
-        serial: '15 0406 88 06338',
+        id: 'e9',
+        name: 'Stihl FS 70R Trimmer',
+        type: '✂️ String Trimmer',
+        year: '',
+        engine: '27.2cc 2-stroke',
+        serial: '',
         purchaseDate: '',
         oilInterval: 999,
-        trackHours: true,
-        notes: 'Engine: B&S Vanguard 200 Series, 205cc single-cylinder OHV (mfg April 2015). Oil: Vanguard 15W-50 Full Synthetic (~18-20oz). Spark Plug: B&S #597383. Air Filter: #596760. Official Maintenance Kit #84006008 includes all parts + Sta-Bil. Change oil at first 5hrs break-in, then every 50hrs or annually.',
-        serviceIntervals: [
-          { task: 'Oil Change',  hours: 50,  icon: '🛢', note: 'Vanguard 15W-50 Full Synthetic, ~18-20oz. Change every 50hrs or annually, whichever comes first. First change at 5hrs break-in.' },
-          { task: 'Air Filter',  hours: 25,  icon: '💨', note: '#596760 cartridge — clean every 25hrs, replace annually. More frequently in dusty conditions.' },
-          { task: 'Spark Plug',  hours: 100, icon: '🔩', note: '#597383 — gap 0.030". Replace annually or every 100hrs.' },
-        ],
+        trackHours: false,
+        notes: 'Fuel: 50:1 mix. Parts: Air Filter #4144-124-2800, Fuel Filter (replace annually), Spark Plug CMR6H (same as MS171). Replace spark plug every 100hrs or annually. Replace fuel pickup body every year. Clean air filter every 5hrs of use. Trimmer line: round .095" line recommended.',
         maintenance: [
-          { id: 'm10a', date: '2024-03-15', type: 'Oil Change', notes: 'Break-in oil change — Vanguard 15W-50 Full Synthetic', nextDue: '2025-03-15' },
-          { id: 'm10b', date: '2024-03-15', type: 'Air Filter', notes: 'Break-in service', nextDue: '2025-03-15' },
-          { id: 'm10c', date: '2024-03-15', type: 'Spark Plug', notes: 'Break-in service', nextDue: '2025-03-15' },
-          { id: 'm10d', date: '2023-03-10', type: 'Oil Change', notes: 'From prior log (Cyclone)', nextDue: '' },
-          { id: 'm10e', date: '2023-03-10', type: 'Spark Plug', notes: 'From prior log (Cyclone)', nextDue: '' },
-          { id: 'm10f', date: '2023-03-10', type: 'Air Filter', notes: 'From prior log (Cyclone)', nextDue: '' },
+          { id: 'm9a', date: '2024-04-01', type: 'Air Filter', notes: 'Break-in service', nextDue: '' },
+          { id: 'm9b', date: '2024-04-01', type: 'Spark Plug', notes: 'Break-in service', nextDue: '' },
+          { id: 'm9c', date: '2024-04-01', type: 'Fuel Filter', notes: 'Break-in service', nextDue: '' },
+          { id: 'm9d', date: '2023-10-01', type: 'Spark Plug', notes: 'From prior log', nextDue: '' },
+          { id: 'm9e', date: '2023-10-01', type: 'Air Filter', notes: 'From prior log', nextDue: '' },
         ],
         hours: [
-          { id: 'h10a', date: '2024-03-15', hours: 5, notes: 'Break-in period', total: 5 },
-          { id: 'h10b', date: '2024-10-25', hours: 8, notes: 'Fall leaf cleanup', total: 13 },
-          { id: 'h10c', date: '2024-11-10', hours: 7, notes: 'Late fall cleanup', total: 22.5 },
+          { id: 'h9a', date: '2024-04-01', hours: 5, notes: 'Break-in period', total: 5 },
+          { id: 'h9b', date: '2024-05-18', hours: 4, notes: 'Trimming season start', total: 9 },
+          { id: 'h9c', date: '2024-07-20', hours: 5, notes: 'Summer trimming', total: 14 },
+          { id: 'h9d', date: '2024-09-15', hours: 4, notes: 'Fall edging', total: 18 },
         ],
         parts: [
-          { id: 'p10a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Briggs & Stratton / Amazon', notes: 'OEM #596760 — cartridge-style, fits all Vanguard 200 Series single-cylinder engines (12V332/336/337/352/367).' },
-          { id: 'p10b', date: '2025-01-01', part: 'Spark Plug', cost: 0, where: 'Briggs & Stratton / Amazon', notes: 'OEM #597383 — fits Vanguard 200 Series (10V/12V/19V/25V series). Replace annually.' },
-          { id: 'p10c', date: '2025-01-01', part: 'Engine Oil — Vanguard 15W-50 Full Synthetic', cost: 0, where: 'Briggs & Stratton / Amazon', notes: 'OEM #100169 — 1 qt bottle. MUST use Vanguard 15W-50, NOT standard SAE 30. ~18-20oz capacity.' },
-          { id: 'p10d', date: '2025-01-01', part: 'Maintenance Kit (air filter + plug + oil + Sta-Bil)', cost: 0, where: 'Briggs & Stratton / Amazon', notes: 'OEM Kit #84006008 — Vanguard 200 Series single-cylinder. Includes #596760 air filter, #597383 spark plug, 15W-50 oil, Sta-Bil.' }
+          { id: 'p9a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #4144-124-2800 — fits FS40/50/56/70, FC56/70, KM56, HT56C. Clean every 5hrs, replace annually.' },
+          { id: 'p9b', date: '2025-01-01', part: 'Fuel Filter / Pickup Body', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'Fuel pickup body inside tank — replace annually. Same small-bore filter style as other Stihl trimmers.' },
+          { id: 'p9c', date: '2025-01-01', part: 'Spark Plug NGK CMR6H', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7015 — NGK CMR6H (same as Stihl MS171). Replace every 100hrs or annually.' },
+          { id: 'p9d', date: '2025-01-01', part: 'Service Kit (all 3 parts)', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM Kit #4144-007-1800 — bundles air filter, fuel filter, spark plug. Fits FS40/50/56/70, FC56/70, KM56, HT56C.' }
         ],
-        totalHours: 22.5
+        totalHours: 18
       },
       {
         id: 'e4',
@@ -1372,6 +1368,43 @@ function seedDemo() {
         totalHours: 17
       },
       {
+        id: 'e10',
+        name: 'Cyclone Tow-Behind Leaf Vac',
+        type: '🍂 Leaf Blower',
+        year: '2015',
+        engine: 'Vanguard 6.5HP 205cc OHV',
+        serial: '15 0406 88 06338',
+        purchaseDate: '',
+        oilInterval: 999,
+        trackHours: true,
+        notes: 'Engine: B&S Vanguard 200 Series, 205cc single-cylinder OHV (mfg April 2015). Oil: Vanguard 15W-50 Full Synthetic (~18-20oz). Spark Plug: B&S #597383. Air Filter: #596760. Official Maintenance Kit #84006008 includes all parts + Sta-Bil. Change oil at first 5hrs break-in, then every 50hrs or annually.',
+        serviceIntervals: [
+          { task: 'Oil Change',  hours: 50,  icon: '🛢', note: 'Vanguard 15W-50 Full Synthetic, ~18-20oz. Change every 50hrs or annually, whichever comes first. First change at 5hrs break-in.' },
+          { task: 'Air Filter',  hours: 25,  icon: '💨', note: '#596760 cartridge — clean every 25hrs, replace annually. More frequently in dusty conditions.' },
+          { task: 'Spark Plug',  hours: 100, icon: '🔩', note: '#597383 — gap 0.030". Replace annually or every 100hrs.' },
+        ],
+        maintenance: [
+          { id: 'm10a', date: '2024-03-15', type: 'Oil Change', notes: 'Break-in oil change — Vanguard 15W-50 Full Synthetic', nextDue: '2025-03-15' },
+          { id: 'm10b', date: '2024-03-15', type: 'Air Filter', notes: 'Break-in service', nextDue: '2025-03-15' },
+          { id: 'm10c', date: '2024-03-15', type: 'Spark Plug', notes: 'Break-in service', nextDue: '2025-03-15' },
+          { id: 'm10d', date: '2023-03-10', type: 'Oil Change', notes: 'From prior log (Cyclone)', nextDue: '' },
+          { id: 'm10e', date: '2023-03-10', type: 'Spark Plug', notes: 'From prior log (Cyclone)', nextDue: '' },
+          { id: 'm10f', date: '2023-03-10', type: 'Air Filter', notes: 'From prior log (Cyclone)', nextDue: '' },
+        ],
+        hours: [
+          { id: 'h10a', date: '2024-03-15', hours: 5, notes: 'Break-in period', total: 5 },
+          { id: 'h10b', date: '2024-10-25', hours: 8, notes: 'Fall leaf cleanup', total: 13 },
+          { id: 'h10c', date: '2024-11-10', hours: 7, notes: 'Late fall cleanup', total: 22.5 },
+        ],
+        parts: [
+          { id: 'p10a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Briggs & Stratton / Amazon', notes: 'OEM #596760 — cartridge-style, fits all Vanguard 200 Series single-cylinder engines (12V332/336/337/352/367).' },
+          { id: 'p10b', date: '2025-01-01', part: 'Spark Plug', cost: 0, where: 'Briggs & Stratton / Amazon', notes: 'OEM #597383 — fits Vanguard 200 Series (10V/12V/19V/25V series). Replace annually.' },
+          { id: 'p10c', date: '2025-01-01', part: 'Engine Oil — Vanguard 15W-50 Full Synthetic', cost: 0, where: 'Briggs & Stratton / Amazon', notes: 'OEM #100169 — 1 qt bottle. MUST use Vanguard 15W-50, NOT standard SAE 30. ~18-20oz capacity.' },
+          { id: 'p10d', date: '2025-01-01', part: 'Maintenance Kit (air filter + plug + oil + Sta-Bil)', cost: 0, where: 'Briggs & Stratton / Amazon', notes: 'OEM Kit #84006008 — Vanguard 200 Series single-cylinder. Includes #596760 air filter, #597383 spark plug, 15W-50 oil, Sta-Bil.' }
+        ],
+        totalHours: 22.5
+      },
+      {
         id: 'e7',
         name: 'Champion 27-Ton Log Splitter',
         type: '⚙️ Generator',
@@ -1416,37 +1449,6 @@ function seedDemo() {
         totalHours: 59.6
       },
       {
-        id: 'e9',
-        name: 'Stihl FS 70R Trimmer',
-        type: '✂️ String Trimmer',
-        year: '',
-        engine: '27.2cc 2-stroke',
-        serial: '',
-        purchaseDate: '',
-        oilInterval: 999,
-        trackHours: false,
-        notes: 'Fuel: 50:1 mix. Parts: Air Filter #4144-124-2800, Fuel Filter (replace annually), Spark Plug CMR6H (same as MS171). Replace spark plug every 100hrs or annually. Replace fuel pickup body every year. Clean air filter every 5hrs of use. Trimmer line: round .095" line recommended.',
-        maintenance: [
-          { id: 'm9a', date: '2024-04-01', type: 'Air Filter', notes: 'Break-in service', nextDue: '' },
-          { id: 'm9b', date: '2024-04-01', type: 'Spark Plug', notes: 'Break-in service', nextDue: '' },
-          { id: 'm9c', date: '2024-04-01', type: 'Fuel Filter', notes: 'Break-in service', nextDue: '' },
-          { id: 'm9d', date: '2023-10-01', type: 'Spark Plug', notes: 'From prior log', nextDue: '' },
-          { id: 'm9e', date: '2023-10-01', type: 'Air Filter', notes: 'From prior log', nextDue: '' },
-        ],
-        hours: [
-          { id: 'h9a', date: '2024-04-01', hours: 5, notes: 'Break-in period', total: 5 },
-          { id: 'h9b', date: '2024-05-18', hours: 4, notes: 'Trimming season start', total: 9 },
-          { id: 'h9c', date: '2024-07-20', hours: 5, notes: 'Summer trimming', total: 14 },
-          { id: 'h9d', date: '2024-09-15', hours: 4, notes: 'Fall edging', total: 18 },
-        ],
-        parts: [
-          { id: 'p9a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #4144-124-2800 — fits FS40/50/56/70, FC56/70, KM56, HT56C. Clean every 5hrs, replace annually.' },
-          { id: 'p9b', date: '2025-01-01', part: 'Fuel Filter / Pickup Body', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'Fuel pickup body inside tank — replace annually. Same small-bore filter style as other Stihl trimmers.' },
-          { id: 'p9c', date: '2025-01-01', part: 'Spark Plug NGK CMR6H', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7015 — NGK CMR6H (same as Stihl MS171). Replace every 100hrs or annually.' }
-        ],
-        totalHours: 18
-      },
-      {
         id: 'e8',
         name: 'Husqvarna YTH2348',
         type: '🚜 Riding Mower',
@@ -1458,19 +1460,17 @@ function seedDemo() {
         trackHours: true,
         notes: 'Oil: SAE 30 or 10W-30 synthetic, ~48oz with filter. TWO spark plugs needed: #491055S (Champion RC12YC). Air Filter #273658S + Pre-Cleaner #272403S (do NOT oil pre-cleaner). Oil Filter: B&S #492056 / Wix 51056. Deck Belt #532144959, Drive Belt #532139776, Blades #532138971. Change oil BEFORE storage (not after season).',
         serviceIntervals: [
-          { task: 'Oil Change',        hours: 25,  icon: '🛢', note: 'SAE 30 or 10W-30 synthetic, ~48oz with filter. Change every 25hrs. Always change before storage.' },
-          { task: 'Oil Filter',        hours: 50,  icon: '🔧', note: 'B&S #492056 / Wix 51056. Replace every 50hrs or every other oil change.' },
+          { task: 'Oil Change',        hours: 50,  icon: '🛢', note: 'SAE 30 or 10W-30 synthetic, ~48oz with filter. Change every 50hrs or annually, whichever comes first.' },
+          { task: 'Oil Filter',        hours: 50,  icon: '🔧', note: 'B&S #492056 / Wix 51056. Replace every 50hrs with oil change.' },
           { task: 'Spark Plug',        hours: 100, icon: '🔩', note: 'TWO plugs — #491055S (Champion RC12YC). Replace annually or every 100hrs.' },
           { task: 'Air Filter',        hours: 100, icon: '💨', note: '#273658S cartridge + #272403S pre-cleaner. Replace annually or every 100hrs. Do NOT oil pre-cleaner.' },
-          { task: 'Blade Sharpen',     hours: 25,  icon: '🔪', note: 'Inspect and sharpen every 25hrs or each season. Replace #532138971 blades when worn.' },
           { task: 'Grease / Lube',     hours: 25,  icon: '⚙️', note: 'Grease spindle zerks, front wheel bearing zerks every 25hrs with general-purpose grease.' },
           { task: 'Belt Inspection',   hours: 100, icon: '🔗', note: 'Check deck belt #532144959 and drive belt #532139776 for wear/cracking every 100hrs.' },
         ],
         maintenance: [
-          { id: 'm8a', date: '2024-04-05', type: 'Oil Change', notes: 'Break-in oil change — 10W-30 synthetic, oil filter replaced', nextDue: '' },
           { id: 'm8b', date: '2024-04-05', type: 'Air Filter', notes: 'Break-in service — primary and pre-cleaner', nextDue: '' },
           { id: 'm8c', date: '2024-04-05', type: 'Spark Plug', notes: 'Break-in service — both plugs replaced', nextDue: '' },
-          { id: 'm8d', date: '2024-04-05', type: 'Blade Sharpen', notes: 'Start of season sharpening', nextDue: '' },
+          { id: 'm8d', date: '2024-09-01', type: 'Blade Sharpen', notes: 'Fall sharpening', nextDue: '2025-03-01' },
           { id: 'm8i', date: '2021-11-21', type: 'Oil Change', notes: '610 hrs — from prior log', nextDue: '' },
           { id: 'm8e', date: '2023-03-05', type: 'Oil Change', notes: '678 hrs — from prior log', nextDue: '' },
           { id: 'm8f', date: '2023-03-05', type: 'Oil Filter', notes: '678 hrs — from prior log', nextDue: '' },
@@ -1478,8 +1478,8 @@ function seedDemo() {
           { id: 'm8h', date: '2023-03-05', type: 'Air Filter', notes: '678 hrs — from prior log', nextDue: '' },
         ],
         hours: [
-          { id: 'h8z', date: '2023-03-05', hours: 993.2, notes: 'Actual hours on meter as of latest reading', total: 993.2 },
-
+          { id: 'h8z', date: '2023-01-01', hours: 678, notes: 'Hours at last service', total: 678 },
+          { id: 'h8y', date: '2025-01-01', hours: 315.2, notes: 'Estimated additional hours', total: 993.2 },
         ],
         parts: [
           { id: 'p8a', date: '2025-01-01', part: 'Spark Plug (x2 needed)', cost: 0, where: 'Briggs & Stratton / AutoZone / Amazon', notes: 'OEM #491055S — Champion RC12YC equivalent. V-Twin engine needs TWO plugs. Pre-gapped. Replace annually.' },
@@ -1659,8 +1659,25 @@ function getHoursSinceLastService(eq, taskType) {
   const matches = eq.maintenance.filter(m => m.type === taskType).sort((a,b) => b.date.localeCompare(a.date));
   if (!matches.length) return null;
   const lastDate = matches[0].date;
+  // Sum incremental hours logged after the last service date
   const hoursAfter = eq.hours.filter(h => h.date > lastDate).reduce((s,h) => s + parseFloat(h.hours||0), 0);
-  return hoursAfter;
+  if (hoursAfter > 0) return hoursAfter;
+  // No incremental entries after last service — use totalHours minus the running total at last service
+  if (eq.totalHours > 0) {
+    // Find the closest hours entry on or before last service date
+    const before = eq.hours.filter(h => h.date <= lastDate).sort((a,b) => b.date.localeCompare(a.date));
+    const baseTotal = before.length ? parseFloat(before[0].total || 0) : 0;
+    const delta = parseFloat(eq.totalHours) - baseTotal;
+    // If delta is 0 (same-day snapshot), try to extract hours from maintenance notes (e.g. "678 hrs")
+    if (delta === 0) {
+      const noteMatch = matches[0].notes && matches[0].notes.match(/(\d+(?:\.\d+)?)\s*hrs?/i);
+      if (noteMatch) {
+        return Math.max(0, parseFloat(eq.totalHours) - parseFloat(noteMatch[1]));
+      }
+    }
+    return Math.max(0, delta);
+  }
+  return 0;
 }
 
 function getMaintenanceIssues(data) {
@@ -1802,6 +1819,9 @@ function addToShoppingList(key, taskName, equipName, equipId) {
   }
   renderReminders();
   renderShopping();
+  // Check if adding this item completes a kit
+  // Check if adding this item completes a kit (defer so render is complete first)
+  setTimeout(() => checkKitOpportunity(equipId), 50);
   // Flash feedback
   const btn = event.target;
   btn.textContent = '✓ Added!';
@@ -1906,6 +1926,10 @@ function renderReminders() {
     return;
   }
 
+  // Calculate resolved install keys first (needed for both byEquip and progress bar)
+  const currentInstallKeys = new Set(issues.map(i => i.equipId + '_' + i.task + '_install'));
+  const resolvedInstallKeys = Object.keys(todoChecked).filter(k => k.endsWith('_install') && todoChecked[k] && !currentInstallKeys.has(k));
+
   // Group issues by equipment
   const byEquip = {};
   issues.forEach(issue => {
@@ -1923,9 +1947,7 @@ function renderReminders() {
     }
   });
 
-  // Total subtask progress — include resolved installs (they disappear from issues once logged)
-  const currentInstallKeys = new Set(issues.map(i => i.equipId + '_' + i.task + '_install'));
-  const resolvedInstallKeys = Object.keys(todoChecked).filter(k => k.endsWith('_install') && todoChecked[k] && !currentInstallKeys.has(k));
+  // Total subtask progress
   const totalSubtasks = issues.length + resolvedInstallKeys.length;
   const doneSubtasks = resolvedInstallKeys.length + [...currentInstallKeys].filter(k => todoChecked[k]).length;
   const pct = totalSubtasks > 0 ? Math.min(100, Math.round((doneSubtasks / totalSubtasks) * 100)) : 0;
@@ -1953,6 +1975,11 @@ function renderReminders() {
     }, 0);
     const allDone = groupSubtasks > 0 && groupDone === groupSubtasks;
 
+    const _eqForCount = data.equipment.find(e => e.id === equipId);
+    const partsPurchasedCount = group.issues.filter(issue =>
+      _eqForCount ? hasPurchasedNotInstalled(_eqForCount, issue.task) !== null : false
+    ).length;
+
     const tasksHtml = group.issues.map(issue => {
       const orderKey = equipId + '_' + issue.task + '_order';
       const installKey = equipId + '_' + issue.task + '_install';
@@ -1960,6 +1987,13 @@ function renderReminders() {
       const installDone = !!todoChecked[installKey];
       const shopKey = equipId + '|' + issue.task;
       const alreadyOnList = customShopItems.some(i => i.key === shopKey);
+      const eq = data.equipment.find(e => e.id === equipId);
+      const purchasedPart = eq ? hasPurchasedNotInstalled(eq, issue.task) : null;
+      const purchasedNote = purchasedPart
+        ? `<div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 10px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:4px;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--green);letter-spacing:0.03em">
+            🛒 <span>${purchasedPart._viaKit ? 'Covered by kit — ' : purchasedPart._allComps ? 'All parts in hand — ' : 'Part in hand — '}purchased ${fmtDate(purchasedPart.date)}</span>
+          </div>`
+        : '';
       return `<div class="todo-task">
         <div class="todo-task-header">
           <span class="todo-task-icon">${issue.icon}</span>
@@ -1967,6 +2001,7 @@ function renderReminders() {
           <span class="todo-task-badge badge-${issue.status}">${issue.status === 'due' ? 'Overdue' : 'Due Soon'}</span>
         </div>
         <div class="todo-task-detail">${issue.detail}</div>
+        ${purchasedNote}
         <div class="todo-subtasks">
           <div class="todo-subtask ${installDone ? 'done' : ''}" onclick="toggleTodo('${installKey}')">
             <div class="todo-subtask-check">${installDone ? '✓' : ''}</div>
@@ -1986,7 +2021,11 @@ function renderReminders() {
       <div class="todo-equip-header" onclick="toggleTodoGroup('${equipId}')">
         <div class="todo-equip-title">
           ${getIcon(data.equipment.find(e=>e.id===equipId)?.type||'')} ${group.name}
-          <span class="todo-equip-count ${allDone ? 'all-done' : ''}">${allDone ? '✓ Done' : groupDone + '/' + groupSubtasks}</span>
+          ${allDone
+            ? '<span class="todo-equip-count all-done">✓ Done</span>'
+            : `<span class="todo-equip-count">Tasks: ${groupDone}/${groupSubtasks}</span>
+               <span class="todo-equip-count" style="background:${partsPurchasedCount === groupSubtasks ? 'var(--green-dark)' : 'var(--surface3)'};color:${partsPurchasedCount === groupSubtasks ? '#fff' : 'var(--text-muted)'};border:1px solid ${partsPurchasedCount === groupSubtasks ? 'var(--green)' : 'var(--border)'}">🛒 ${partsPurchasedCount}/${groupSubtasks}</span>`
+          }
         </div>
         <span class="todo-equip-collapse" id="collapse-${equipId}" style="transform:rotate(-90deg)">▼</span>
       </div>
@@ -2174,6 +2213,7 @@ function checkKitOpportunity(equipId) {
   if (compKeys.length < 2) return;
   const kitKey = Object.keys(KIT_COMPONENTS).find(k =>
     k.startsWith(equipId + '_') &&
+    KIT_COMPONENTS[k].every(ck => compKeys.includes(ck)) &&
     compKeys.every(ck => KIT_COMPONENTS[k].includes(ck))
   );
   if (kitKey) setTimeout(() => showKitPrompt(kitKey, compKeys), 150);
@@ -2378,20 +2418,26 @@ function resetAppData() {
   // Hardcoded canonical equipment names and static fields
   // These are the source of truth regardless of what's in localStorage
   const canonicalNames = {
-    e1: { name: 'Stihl MS 171 Chainsaw', type: '🪚 Chainsaw', engine: '31.8cc 2-stroke', oilInterval: 999, trackHours: false },
-    e2: { name: 'Stihl MS 251 Wood Boss Chainsaw', type: '🪚 Chainsaw', engine: '45.6cc 2-stroke', oilInterval: 999, trackHours: false },
-    e3: { name: 'Stihl MS 271 Farm Boss Chainsaw', type: '🪚 Chainsaw', engine: '50.2cc 2-stroke', oilInterval: 999, trackHours: false },
-    e4: { name: 'Stihl FS 70R Trimmer', type: '🌿 Trimmer', engine: '27.2cc 2-stroke', oilInterval: 999, trackHours: false },
-    e5: { name: 'Echo SRM-225 Trimmer', type: '🌿 Trimmer', engine: '21.2cc 2-stroke', oilInterval: 999, trackHours: false },
-    e6: { name: 'Echo ES-250 Shred-N-Vac', type: '🍂 Blower/Vac', engine: '25.4cc 2-stroke', oilInterval: 999, trackHours: false },
-    e7: { name: 'Push Mower (B&S EXi625)', type: '🌿 Mower', engine: 'B&S EXi 163cc 4-stroke', oilInterval: 'annual', trackHours: false },
-    e8: { name: 'Husqvarna YTH2348 Riding Mower', type: '🚜 Riding Mower', engine: 'Briggs & Stratton 23HP', oilInterval: 100, trackHours: true },
-    e9: { name: 'Cyclone Tow-Behind Leaf Vac', type: '🍂 Blower/Vac', engine: 'Vanguard 6.5HP 205cc 4-stroke', oilInterval: 'annual', trackHours: false },
-    e10: { name: 'Champion 27-Ton Log Splitter', type: '🪵 Log Splitter', engine: 'Briggs & Stratton 208cc 4-stroke', oilInterval: 'annual', trackHours: false },
+    e1:  { name: 'Stihl MS 171 Chainsaw',              type: '🪚 Chainsaw',        engine: '31.8cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 20 },
+    e2:  { name: 'Stihl MS 251 Wood Boss Chainsaw',    type: '🪚 Chainsaw',        engine: '45.6cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 23 },
+    e3:  { name: 'Stihl MS 271 Farm Boss Chainsaw',    type: '🪚 Chainsaw',        engine: '50.2cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 26 },
+    e4:  { name: 'Echo ES-250 Shred-N-Vac',            type: '🍂 Blower/Vac',      engine: '25.4cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 0 },
+    e5:  { name: 'Generac 2800 PSI Pressure Washer',   type: '🚿 Pressure Washer', engine: '196cc 4-stroke',                    oilInterval: 'annual', trackHours: false, totalHours: 0 },
+    e6:  { name: 'Push Mower (B&S EXi625)',            type: '🌿 Mower',           engine: 'B&S EXi 163cc 4-stroke',            oilInterval: 'annual', trackHours: false, totalHours: 0 },
+    e7:  { name: 'Champion 27-Ton Log Splitter',       type: '🪵 Log Splitter',    engine: 'Briggs & Stratton 208cc 4-stroke',  oilInterval: 'annual', trackHours: true,  totalHours: 59.6 },
+    e8:  { name: 'Husqvarna YTH2348 Riding Mower',     type: '🚜 Riding Mower',    engine: 'Briggs & Stratton 23HP',            oilInterval: 999,      trackHours: true,  totalHours: 993.2 },
+    e9:  { name: 'Stihl FS 70R Trimmer',               type: '🌿 Trimmer',         engine: '27.2cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 0 },
+    e10: { name: 'Cyclone Tow-Behind Leaf Vac',        type: '🍂 Blower/Vac',      engine: 'Vanguard 6.5HP 205cc 4-stroke',     oilInterval: 'annual', trackHours: true,  totalHours: 47.5 },
   };
 
   const data = load();
   let changed = false;
+
+  // Build a fresh seed to get the canonical parts lists
+  // Run seedDemo into a temp object by temporarily clearing storage, grabbing the seed, then restoring
+  // Simpler: just re-run seedDemo logic inline using the hardcoded demo object
+  // We do this by calling a one-shot seed reader that doesn't overwrite existing data
+  const seedData = getCanonicalSeedData();
 
   data.equipment.forEach(eq => {
     const canonical = canonicalNames[eq.id];
@@ -2401,14 +2447,71 @@ function resetAppData() {
     eq.engine = canonical.engine;
     eq.oilInterval = canonical.oilInterval;
     eq.trackHours = canonical.trackHours;
+    if (canonical.totalHours !== undefined) eq.totalHours = canonical.totalHours;
+    // Also restore reference parts (cost=0) from seed — preserves purchased parts (cost>0)
+    if (seedData[eq.id]) {
+      const purchasedParts = eq.parts.filter(p => (parseFloat(p.cost) || 0) > 0);
+      eq.parts = [...seedData[eq.id].parts, ...purchasedParts];
+    }
     changed = true;
   });
 
   if (changed) {
+    // Fix riding mower hours if still has single snapshot entry that prevents delta calculation
+    const e8 = data.equipment.find(e => e.id === 'e8');
+    if (e8 && e8.hours && e8.hours.length === 1 && e8.hours[0].total >= 900) {
+      e8.hours = [
+        { id: 'h8z', date: '2023-01-01', hours: 678, notes: 'Hours at last service', total: 678 },
+        { id: 'h8y', date: '2025-01-01', hours: 315.2, notes: 'Estimated additional hours', total: 993.2 },
+      ];
+      e8.totalHours = 993.2;
+    }
+
+    // Reorder equipment array to match canonical order
+    const ORDER = ['e1','e2','e3','e9','e4','e5','e6','e10','e7','e8'];
+    data.equipment.sort((a, b) => {
+      const ai = ORDER.indexOf(a.id);
+      const bi = ORDER.indexOf(b.id);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
     save(data);
-    alert('Equipment names and settings restored. Your logs are intact.');
+    alert('Equipment names, parts lists, and settings restored. Your logs and purchases are intact.');
     location.reload();
   }
+}
+
+function getCanonicalSeedData() {
+  // Returns a map of equipId -> { parts: [...reference parts] }
+  // by reading the hardcoded seed equipment directly from seedDemo's demo object.
+  // We achieve this by temporarily running seedDemo in a "dry run" mode.
+  // Simpler approach: just hardcode the reference parts inline here too.
+  // Since parts are static and tied to OEM numbers, this is safe and explicit.
+  return {
+    e1: { parts: [
+      { id: 'p1a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #1139-120-1602 — fleece type, fits MS171/MS181/MS211' },
+      { id: 'p1b', date: '2025-01-01', part: 'Fuel Filter (Pickup Body)', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #0000-350-3503 — replace annually or if rough running' },
+      { id: 'p1c', date: '2025-01-01', part: 'Spark Plug NGK CMR6H', cost: 0, where: 'Stihl Dealer / Amazon / AutoZone', notes: 'OEM #0000-400-7015 — NGK CMR6H (part# 3365). Gap: 0.020". Replace annually.' },
+      { id: 'p1d', date: '2025-01-01', part: 'Service Kit (all 3 parts)', cost: 0, where: 'Stihl Dealer', notes: 'OEM Kit #1139-007-1800 — bundles air filter, fuel filter, spark plug' }
+    ]},
+    e2: { parts: [
+      { id: 'p2a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #1141-120-1600 — same as MS271. Fits MS231/251/261/271/291/311/391.' },
+      { id: 'p2b', date: '2025-01-01', part: 'Fuel Filter (Pickup Body)', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #0000-350-3518 — orange/red filter body. Same as MS271.' },
+      { id: 'p2c', date: '2025-01-01', part: 'Spark Plug NGK BPMR7A', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7000 — NGK BPMR7A. Same as MS271. Replace annually.' },
+      { id: 'p2d', date: '2025-01-01', part: 'Service Kit (all 3 parts)', cost: 0, where: 'Stihl Dealer', notes: 'OEM Kit #1141-007-1800 — bundles air filter, fuel filter, spark plug. Same as MS271.' }
+    ]},
+    e3: { parts: [
+      { id: 'p3a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #1141-120-1600 — same as MS251. Fits MS231/251/261/271/291/311/391.' },
+      { id: 'p3b', date: '2025-01-01', part: 'Fuel Filter (Pickup Body)', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #0000-350-3518 — orange/red filter body. Same as MS251.' },
+      { id: 'p3c', date: '2025-01-01', part: 'Spark Plug NGK BPMR7A', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7000 — NGK BPMR7A. Same as MS251. Replace annually.' },
+      { id: 'p3d', date: '2025-01-01', part: 'Service Kit (all 3 parts)', cost: 0, where: 'Stihl Dealer', notes: 'OEM Kit #1141-007-1800 — bundles air filter, fuel filter, spark plug for MS261/271/291/311/391.' }
+    ]},
+    e9: { parts: [
+      { id: 'p9a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #4144-124-2800 — fits FS40/50/56/70, FC56/70, KM56, HT56C. Clean every 5hrs, replace annually.' },
+      { id: 'p9b', date: '2025-01-01', part: 'Fuel Filter / Pickup Body', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'Fuel pickup body inside tank — replace annually. Same small-bore filter style as other Stihl trimmers.' },
+      { id: 'p9c', date: '2025-01-01', part: 'Spark Plug NGK CMR6H', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7015 — NGK CMR6H (same as Stihl MS171). Replace every 100hrs or annually.' },
+      { id: 'p9d', date: '2025-01-01', part: 'Service Kit (all 3 parts)', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM Kit #4144-007-1800 — bundles air filter, fuel filter, spark plug. Fits FS40/50/56/70, FC56/70, KM56, HT56C.' }
+    ]}
+  };
 }
 
 function clearChecked() {
@@ -2428,6 +2531,89 @@ function partMatchesFilter(partName, notes) {
 }
 
 // Global helper — find the reference part object for a given task name + equipId
+// Fuzzy match: does a purchased part name match a task name?
+function partMatchesTask(partName, taskName) {
+  const pn = partName.toLowerCase();
+  const tn = taskName.toLowerCase();
+  if (pn.includes(tn) || tn.includes(pn.split(' ')[0])) return true;
+  if ((pn.includes('air filter') || pn.includes('pre-cleaner')) && tn === 'air filter') return true;
+  if (pn.includes('spark plug') && tn === 'spark plug') return true;
+  if (pn.includes('fuel filter') && tn.includes('fuel filter')) return true;
+  if (pn.includes('oil filter') && tn === 'oil filter') return true;
+  if ((pn.includes('engine oil') || (pn.includes('oil') && !pn.includes('filter') && !pn.includes('hydraulic') && !pn.includes('pump'))) && tn === 'oil change') return true;
+  if ((pn.includes('hydraulic oil') || pn.includes('hydraulic fluid')) && tn === 'hydraulic oil') return true;
+  if (pn.includes('hydraulic') && pn.includes('filter') && tn === 'hydraulic filter') return true;
+  if ((pn.includes('blade') || pn.includes('sharpen')) && tn === 'blade sharpen') return true;
+  return false;
+}
+
+// Check if a task's part has been purchased but not yet installed.
+// Also checks kit purchases — if you bought a kit, all its component tasks get "part in hand",
+// and if you bought all individual components, the kit task gets it too.
+function hasPurchasedNotInstalled(eq, taskName) {
+  rebuildKitMaps(); // ensure KIT_COMPONENTS is current
+  const tn = taskName.toLowerCase();
+  const purchasedParts = eq.parts.filter(p => (parseFloat(p.cost) || 0) > 0);
+  if (!purchasedParts.length) return null;
+
+  // Helper: is this purchase already installed (maintenance logged on/after purchase date)?
+  function isInstalled(purchase, matchTaskName) {
+    const mt2 = matchTaskName.toLowerCase();
+    return eq.maintenance.some(m => {
+      const mt = m.type.toLowerCase();
+      if (mt !== mt2 && !mt.includes(mt2) && !mt2.includes(mt.split(' ')[0])) return false;
+      return m.date >= purchase.date;
+    });
+  }
+
+  // 1. Direct match — did you buy this specific part?
+  const directPurchase = purchasedParts.find(p => partMatchesTask(p.part, taskName));
+  if (directPurchase && !isInstalled(directPurchase, taskName)) return directPurchase;
+
+  // 2. Kit coverage — did you buy a kit that covers this task?
+  const kitPurchase = purchasedParts.find(p => /kit/i.test(p.part));
+  if (kitPurchase && !isInstalled(kitPurchase, taskName)) {
+    // Find the matching ref kit for this equipment
+    const kitRefPart = eq.parts.find(rp =>
+      (parseFloat(rp.cost) || 0) === 0 && /kit/i.test(rp.part)
+    );
+    if (kitRefPart) {
+      const kitKey = eq.id + '_' + kitRefPart.id;
+      const compKeys = KIT_COMPONENTS[kitKey] || [];
+      // Check if this task maps to one of the kit's components
+      const taskRefPart = findPartForTask(eq.id, taskName);
+      const taskKey = taskRefPart ? eq.id + '_' + taskRefPart.id : null;
+      if (taskKey && compKeys.includes(taskKey)) {
+        return { ...kitPurchase, _viaKit: true };
+      }
+      // Also check: is this task literally the kit itself?
+      if (/kit/i.test(taskName)) return { ...kitPurchase, _viaKit: false };
+    }
+  }
+
+  // 3. All components purchased — does the kit task get "part in hand"?
+  if (/kit/i.test(taskName)) {
+    const kitRefPart = eq.parts.find(rp =>
+      (parseFloat(rp.cost) || 0) === 0 && /kit/i.test(rp.part)
+    );
+    if (kitRefPart) {
+      const kitKey = eq.id + '_' + kitRefPart.id;
+      const compKeys = KIT_COMPONENTS[kitKey] || [];
+      // Check if all components have been purchased
+      const allCompsPurchased = compKeys.every(ck => {
+        const compPartId = ck.slice(eq.id.length + 1);
+        const compPart = eq.parts.find(p => p.id === compPartId);
+        if (!compPart) return false;
+        const compPurchase = purchasedParts.find(p => partMatchesTask(p.part, compPart.part));
+        return compPurchase && !isInstalled(compPurchase, compPart.part);
+      });
+      if (allCompsPurchased && compKeys.length > 0) return { date: today(), _allComps: true };
+    }
+  }
+
+  return null;
+}
+
 function findPartForTask(equipId, taskName) {
   const data = load();
   const eq = data.equipment.find(e => e.id === equipId);
@@ -2516,7 +2702,12 @@ function renderShopping() {
       const onClickFn = sharedKey
         ? `toggleCheckAndItem('${sharedKey}','${item.key}')`   // syncs both
         : `toggleCustomShopCheck('${item.key}')`;              // standalone fallback
-      const matchNote = matchedPart
+      const isReplacedByKit = sharedKey && !!replacedByKit[sharedKey];
+      const matchNote = item.isKit
+        ? `<span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--amber);margin-left:6px;opacity:0.9">↩ replacing individual parts</span>`
+        : isReplacedByKit
+        ? `<span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);margin-left:6px;opacity:0.8">→ replaced via kit</span>`
+        : matchedPart
         ? `<span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--green);margin-left:6px;opacity:0.8">↔ synced with parts ref</span>`
         : '';
       const matchedOem = matchedPart ? (matchedPart.notes || '').match(/OEM[^—#]*#([\w\-]+)/i) : null;
@@ -2525,12 +2716,15 @@ function renderShopping() {
         ? encodeURIComponent(item.equipName + ' ' + item.taskName + ' ' + matchedOemNum)
         : encodeURIComponent(item.equipName + ' ' + item.taskName);
       const customAmazonBtn = `<a href="https://www.amazon.com/s?k=${customAmazonQuery}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px;background:var(--amber-pale);border:1px solid var(--amber);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--amber);text-decoration:none;letter-spacing:0.04em" onmouseover="this.style.background='rgba(251,191,36,0.18)'" onmouseout="this.style.background='var(--amber-pale)'">🔍 ${matchedOemNum ? '#' + matchedOemNum : 'Search Amazon'}</a>`;
+      const logPurchaseBtn = matchedPart && !replacedByKit[sharedKey]
+        ? `<button onclick="openLogPartPrefilled_byKey('${sharedKey}')" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;margin-left:6px;padding:4px 10px;background:none;border:1px solid var(--border-bright);border-radius:4px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);cursor:pointer;letter-spacing:0.04em;transition:all 0.15s" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-muted)'">💰 Log Purchase</button>`
+        : '';
       html += `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);${isChecked ? 'opacity:0.8' : ''}">
         <div class="shop-check ${isChecked ? 'checked' : ''}" onclick="${onClickFn}" style="flex-shrink:0;margin-top:2px">${isChecked ? '✓' : ''}</div>
         <div style="flex:1;min-width:0">
           <div style="font-family:var(--font-head);font-weight:600;font-size:0.88rem;${isChecked ? 'text-decoration:line-through;color:var(--text-muted)' : ''}">${item.taskName}${matchNote}</div>
           <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-top:2px">${item.equipName}</div>
-          ${customAmazonBtn}
+          <div style="display:flex;flex-wrap:wrap;gap:0">${customAmazonBtn}${logPurchaseBtn}</div>
         </div>
         <button onclick="removeCustomShopItem('${item.key}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:1rem;padding:2px 6px;border-radius:4px;transition:color 0.15s" title="Remove" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button>
       </div>`;
@@ -3196,6 +3390,70 @@ self.addEventListener('fetch', e => {
     localStorage.setItem('gearlog_seed_snapshot', JSON.stringify(snap));
   }
 })();
+
+// Migration: force e8 serviceIntervals to current correct values
+(function migrateE8ServiceIntervals() {
+  const data = load();
+  const e8 = data.equipment.find(e => e.id === 'e8');
+  if (!e8) return;
+  const correct = [
+    { task: 'Oil Change',      hours: 50,  icon: '🛢', note: 'SAE 30 or 10W-30 synthetic, ~48oz with filter. Change every 50hrs or annually, whichever comes first.' },
+    { task: 'Oil Filter',      hours: 50,  icon: '🔧', note: 'B&S #492056 / Wix 51056. Replace every 50hrs with oil change.' },
+    { task: 'Spark Plug',      hours: 100, icon: '🔩', note: 'TWO plugs — #491055S (Champion RC12YC). Replace annually or every 100hrs.' },
+    { task: 'Air Filter',      hours: 100, icon: '💨', note: '#273658S cartridge + #272403S pre-cleaner. Replace annually or every 100hrs. Do NOT oil pre-cleaner.' },
+    { task: 'Grease / Lube',   hours: 25,  icon: '⚙️', note: 'Grease spindle zerks, front wheel bearing zerks every 25hrs with general-purpose grease.' },
+    { task: 'Belt Inspection', hours: 100, icon: '🔗', note: 'Check deck belt #532144959 and drive belt #532139776 for wear/cracking every 100hrs.' },
+  ];
+  // Check if current serviceIntervals match (by task names and hours)
+  const current = e8.serviceIntervals || [];
+  const needsUpdate = correct.some(c => {
+    const match = current.find(s => s.task === c.task);
+    return !match || match.hours !== c.hours;
+  }) || current.some(s => !correct.find(c => c.task === s.task));
+  if (!needsUpdate) return;
+  e8.serviceIntervals = correct;
+  save(data);
+})();
+(function migrateE8BladeSharpen() {
+  const data = load();
+  const e8 = data.equipment.find(e => e.id === 'e8');
+  if (!e8) return;
+  let changed = false;
+  // Remove Blade Sharpen from serviceIntervals if present
+  if (e8.serviceIntervals && e8.serviceIntervals.some(si => si.task === 'Blade Sharpen')) {
+    e8.serviceIntervals = e8.serviceIntervals.filter(si => si.task !== 'Blade Sharpen');
+    changed = true;
+  }
+  // Ensure latest blade sharpen entry has correct nextDue
+  const bladeEntries = e8.maintenance.filter(m => m.type === 'Blade Sharpen').sort((a,b) => b.date.localeCompare(a.date));
+  if (bladeEntries.length && !bladeEntries[0].nextDue) {
+    bladeEntries[0].nextDue = '2025-03-01';
+    changed = true;
+  }
+  if (changed) save(data);
+})();
+(function migrateE8Hours() {
+  const data = load();
+  const e8 = data.equipment.find(e => e.id === 'e8');
+  if (!e8) return;
+  // Check if hours log is a single large snapshot OR already has the seed split but wrong dates
+  const needsFix = (e8.hours.length === 1 && parseFloat(e8.hours[0].hours) > 100) ||
+                   (e8.hours.every(h => parseFloat(h.hours||0) > 100)); // all entries are snapshots not incremental
+  if (!needsFix) return;
+  const lastOilChange = e8.maintenance.filter(m => m.type === 'Oil Change').sort((a,b) => b.date.localeCompare(a.date))[0];
+  if (!lastOilChange) return;
+  const noteMatch = lastOilChange.notes && lastOilChange.notes.match(/(\d+(?:\.\d+)?)\s*hrs?/i);
+  if (!noteMatch) return;
+  const serviceHours = parseFloat(noteMatch[1]);
+  const totalHours = parseFloat(e8.totalHours) || 993.2;
+  e8.hours = [
+    { id: 'h8z', date: lastOilChange.date.slice(0,7) + '-01', hours: serviceHours, notes: 'Hours at last oil change', total: serviceHours },
+    { id: 'h8y', date: '2025-02-01', hours: totalHours - serviceHours, notes: 'Additional hours since last service', total: totalHours },
+  ];
+  e8.totalHours = totalHours;
+  save(data);
+})();
+
 renderAll();
 
 // ============================================================
