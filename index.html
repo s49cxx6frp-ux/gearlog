@@ -2436,6 +2436,28 @@ function resetAppData() {
   const data = load();
   let changed = false;
 
+  // Canonical service intervals — always restored on reset
+  const canonicalServiceIntervals = {
+    e7: [
+      { task: 'Oil Change',    hours: 50,  icon: '🛢', note: 'SAE 30, ~20oz. Change every 50hrs or annually.' },
+      { task: 'Spark Plug',   hours: 100, icon: '🔩', note: 'Champion RC12YC or NGK BPR6ES. Replace annually or every 100hrs.' },
+      { task: 'Air Filter',   hours: 100, icon: '💨', note: 'B&S foam filter. Clean every 25hrs, replace annually or every 100hrs.' },
+    ],
+    e8: [
+      { task: 'Oil Change',      hours: 50,  icon: '🛢', note: 'SAE 30 or 10W-30 synthetic, ~48oz with filter. Change every 50hrs or annually, whichever comes first.' },
+      { task: 'Oil Filter',      hours: 50,  icon: '🔧', note: 'B&S #492056 / Wix 51056. Replace every 50hrs with oil change.' },
+      { task: 'Spark Plug',      hours: 100, icon: '🔩', note: 'TWO plugs — #491055S (Champion RC12YC). Replace annually or every 100hrs.' },
+      { task: 'Air Filter',      hours: 100, icon: '💨', note: '#273658S cartridge + #272403S pre-cleaner. Replace annually or every 100hrs. Do NOT oil pre-cleaner.' },
+      { task: 'Grease / Lube',   hours: 25,  icon: '⚙️', note: 'Grease spindle zerks, front wheel bearing zerks every 25hrs with general-purpose grease.' },
+      { task: 'Belt Inspection', hours: 100, icon: '🔗', note: 'Check deck belt #532144959 and drive belt #532139776 for wear/cracking every 100hrs.' },
+    ],
+    e10: [
+      { task: 'Oil Change',  hours: 50,  icon: '🛢', note: 'SAE 30, ~20oz. Vanguard 6.5HP — change every 50hrs or annually.' },
+      { task: 'Spark Plug',  hours: 100, icon: '🔩', note: 'Champion RC12YC. Replace annually or every 100hrs.' },
+      { task: 'Air Filter',  hours: 100, icon: '💨', note: 'B&S foam/paper combo. Clean foam every 25hrs, replace annually.' },
+    ],
+  };
+
   // Build a fresh seed to get the canonical parts lists
   // Run seedDemo into a temp object by temporarily clearing storage, grabbing the seed, then restoring
   // Simpler: just re-run seedDemo logic inline using the hardcoded demo object
@@ -2451,6 +2473,10 @@ function resetAppData() {
     eq.oilInterval = canonical.oilInterval;
     eq.trackHours = canonical.trackHours;
     if (canonical.totalHours !== undefined) eq.totalHours = canonical.totalHours;
+    // Restore canonical service intervals
+    if (canonicalServiceIntervals[eq.id]) {
+      eq.serviceIntervals = canonicalServiceIntervals[eq.id];
+    }
     // Also restore reference parts (cost=0) from seed — preserves purchased parts (cost>0)
     if (seedData[eq.id]) {
       const purchasedParts = eq.parts.filter(p => (parseFloat(p.cost) || 0) > 0);
@@ -2468,6 +2494,13 @@ function resetAppData() {
         { id: 'h8y', date: '2025-01-01', hours: 315.2, notes: 'Estimated additional hours', total: 993.2 },
       ];
       e8.totalHours = 993.2;
+    }
+    // Fix blade sharpen nextDue on riding mower
+    if (e8) {
+      const bladeEntries = e8.maintenance.filter(m => m.type === 'Blade Sharpen').sort((a,b) => b.date.localeCompare(a.date));
+      if (bladeEntries.length && !bladeEntries[0].nextDue) {
+        bladeEntries[0].nextDue = '2025-03-01';
+      }
     }
 
     // Reorder equipment array to match canonical order
