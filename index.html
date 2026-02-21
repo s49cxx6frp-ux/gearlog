@@ -879,6 +879,13 @@
       <button class="modal-close" onclick="closeModal('modalAddEquipment')">✕</button>
     </div>
     <div class="modal-body">
+      <!-- AI Photo Scan -->
+      <div id="aiScanSection" style="background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:18px;text-align:center">
+        <div style="font-size:0.8rem;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">📷 Identify with Photo</div>
+        <input type="file" id="equipPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="scanEquipmentPhoto(this)">
+        <button class="btn btn-secondary" style="width:100%;font-size:0.85rem" onclick="document.getElementById('equipPhotoInput').click()">📸 Take / Upload Photo</button>
+        <div id="aiScanStatus" style="margin-top:10px;font-size:0.82rem;color:var(--text-muted);display:none"></div>
+      </div>
       <div class="form-group">
         <label>Equipment Name</label>
         <input type="text" id="newEquipName" placeholder="e.g. Honda Mower, Husqvarna 450X">
@@ -3109,6 +3116,92 @@ function openModal(id) { document.getElementById(id).classList.add('visible'); }
 function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
 
 function openAddEquipment() { openModal('modalAddEquipment'); }
+
+async function scanEquipmentPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+
+  const status = document.getElementById('aiScanStatus');
+  status.style.display = 'block';
+  status.style.color = 'var(--amber)';
+  status.textContent = '🔍 Identifying equipment...';
+
+  // Convert to base64
+  const base64 = await new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = () => res(reader.result.split(',')[1]);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+
+  const mediaType = file.type || 'image/jpeg';
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 }
+            },
+            {
+              type: 'text',
+              text: `You are identifying outdoor power equipment from a photo. Look at this image and identify the equipment. Respond ONLY with a JSON object, no other text:
+{
+  "name": "Full equipment name e.g. Stihl MS 271 Farm Boss Chainsaw",
+  "type": "one of: 🪚 Chainsaw, 🌿 Trimmer, 🍂 Blower/Vac, 🌿 Mower, 🚜 Riding Mower, ⚙️ Generator, 🚿 Pressure Washer, 🪵 Log Splitter, 🔧 Other",
+  "engine": "engine spec e.g. 50.2cc 2-stroke or 163cc 4-stroke, empty string if unknown",
+  "year": "model year as 4-digit string if visible, empty string if unknown",
+  "serial": "model number or serial if visible, empty string if unknown",
+  "oilInterval": "oil change interval in hours as number, 999 if 2-stroke (no oil change), 50 if 4-stroke riding mower, 100 if small 4-stroke",
+  "confidence": "high, medium, or low",
+  "notes": "any helpful notes about the identification"
+}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+
+    // Pre-fill the form
+    if (result.name) document.getElementById('newEquipName').value = result.name;
+    if (result.engine) document.getElementById('newEquipEngine').value = result.engine;
+    if (result.year) document.getElementById('newEquipYear').value = result.year;
+    if (result.serial) document.getElementById('newEquipSerial').value = result.serial;
+    if (result.oilInterval) document.getElementById('newEquipOilInterval').value = result.oilInterval;
+
+    // Match type to select options
+    if (result.type) {
+      const sel = document.getElementById('newEquipType');
+      for (let opt of sel.options) {
+        if (opt.value.includes(result.type.replace(/.*? /, '')) || result.type.includes(opt.value.replace(/.*? /, ''))) {
+          sel.value = opt.value;
+          break;
+        }
+      }
+    }
+
+    const confidenceColor = result.confidence === 'high' ? 'var(--green)' : result.confidence === 'medium' ? 'var(--amber)' : '#e74c3c';
+    status.style.color = confidenceColor;
+    status.innerHTML = `✓ Identified (${result.confidence} confidence)${result.notes ? '<br><span style="color:var(--text-muted)">' + result.notes + '</span>' : ''}<br><span style="color:var(--text-muted);font-size:0.75rem">Review and edit fields below before saving.</span>`;
+
+  } catch (err) {
+    console.error('AI scan error:', err);
+    status.style.color = '#e74c3c';
+    status.textContent = '⚠ Could not identify — please fill in manually.';
+  }
+}
 function openLogMaintenance() {
   if (!currentEquipId) return;
   const d = today();
