@@ -1243,6 +1243,110 @@ function load() {
 }
 function save(data) {
   localStorage.setItem('gearlog', JSON.stringify(data));
+  syncToSupabase(data); // fire-and-forget background sync
+}
+
+// ---------- Supabase Sync ----------
+let syncTimeout = null;
+function syncToSupabase(data) {
+  if (!currentUser) return;
+  // Debounce — wait 2s after last save before syncing
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => pushToSupabase(data), 2000);
+}
+
+async function pushToSupabase(data) {
+  if (!currentUser) return;
+  try {
+    const uid = currentUser.id;
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Upsert all equipment
+    for (const eq of data.equipment) {
+      await sb.from('equipment').upsert({
+        id: eq.id, user_id: uid,
+        name: eq.name, type: eq.type, year: eq.year || '',
+        engine: eq.engine || '', serial: eq.serial || '',
+        purchase_date: eq.purchaseDate || '',
+        oil_interval: String(eq.oilInterval || 50),
+        track_hours: eq.trackHours || false,
+        total_hours: eq.totalHours || 0,
+        notes: eq.notes || '',
+        service_intervals: eq.serviceIntervals || [],
+        sort_order: data.equipment.indexOf(eq)
+      }, { onConflict: 'id' });
+
+      // Upsert maintenance records
+      if (eq.maintenance?.length) {
+        await sb.from('maintenance').upsert(
+          eq.maintenance.map(m => ({
+            id: m.id, user_id: uid, equipment_id: eq.id,
+            date: m.date || today, type: m.type || '',
+            notes: m.notes || '', next_due: m.nextDue || ''
+          })), { onConflict: 'id' }
+        );
+      }
+
+      // Upsert hours
+      if (eq.hours?.length) {
+        await sb.from('hours').upsert(
+          eq.hours.map(h => ({
+            id: h.id, user_id: uid, equipment_id: eq.id,
+            date: h.date || today, hours: h.hours || 0,
+            notes: h.notes || '', total: h.total || 0
+          })), { onConflict: 'id' }
+        );
+      }
+
+      // Upsert parts
+      if (eq.parts?.length) {
+        await sb.from('parts').upsert(
+          eq.parts.map(p => ({
+            id: p.id, user_id: uid, equipment_id: eq.id,
+            date: p.date || today, part: p.part || '',
+            cost: p.cost || 0, where_purchased: p.where || '',
+            notes: p.notes || ''
+          })), { onConflict: 'id' }
+        );
+      }
+    }
+  } catch (err) {
+    console.warn('Supabase sync error:', err.message);
+  }
+}
+
+async function loadFromSupabase() {
+  if (!currentUser) return null;
+  try {
+    const uid = currentUser.id;
+    const { data: equipment } = await sb.from('equipment')
+      .select('*').eq('user_id', uid).order('sort_order');
+    if (!equipment || equipment.length === 0) return null;
+
+    const { data: maintenance } = await sb.from('maintenance').select('*').eq('user_id', uid);
+    const { data: hours } = await sb.from('hours').select('*').eq('user_id', uid);
+    const { data: parts } = await sb.from('parts').select('*').eq('user_id', uid);
+
+    return {
+      equipment: equipment.map(eq => ({
+        id: eq.id, name: eq.name, type: eq.type, year: eq.year,
+        engine: eq.engine, serial: eq.serial, purchaseDate: eq.purchase_date,
+        oilInterval: isNaN(eq.oil_interval) ? eq.oil_interval : Number(eq.oil_interval),
+        trackHours: eq.track_hours, totalHours: eq.total_hours,
+        notes: eq.notes, serviceIntervals: eq.service_intervals || [],
+        maintenance: (maintenance || []).filter(m => m.equipment_id === eq.id)
+          .map(m => ({ id: m.id, date: m.date, type: m.type, notes: m.notes, nextDue: m.next_due })),
+        hours: (hours || []).filter(h => h.equipment_id === eq.id)
+          .map(h => ({ id: h.id, date: h.date, hours: h.hours, notes: h.notes, total: h.total })),
+        parts: (parts || []).filter(p => p.equipment_id === eq.id)
+          .map(p => ({ id: p.id, date: p.date, part: p.part, cost: p.cost, where: p.where_purchased, notes: p.notes })),
+        totalHours: eq.total_hours
+      }))
+    };
+  } catch (err) {
+    console.warn('Supabase load error:', err.message);
+    return null;
+  }
 }
 
 let currentEquipId = null;
@@ -3803,7 +3907,13 @@ if ('serviceWorker' in navigator) {
   save(data);
 })();
 
-function initApp() {
+async function initApp() {
+  // Try to load data from Supabase first
+  const cloudData = await loadFromSupabase();
+  if (cloudData && cloudData.equipment.length > 0) {
+    // Cloud data exists — overwrite local cache
+    localStorage.setItem('gearlog', JSON.stringify(cloudData));
+  }
   renderAll();
 }
 
