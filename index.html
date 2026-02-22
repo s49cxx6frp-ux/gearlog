@@ -3175,15 +3175,30 @@ async function scanEquipmentPhoto(input) {
     localStorage.setItem('gearlog_anthropic_key', apiKey.trim());
   }
 
-  // Convert to base64
-  const base64 = await new Promise((res, rej) => {
-    const reader = new FileReader();
-    reader.onload = () => res(reader.result.split(',')[1]);
-    reader.onerror = rej;
-    reader.readAsDataURL(file);
+  // Compress image to stay under 5MB API limit
+  const { base64, mediaType } = await new Promise((res, rej) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      // Scale down if needed — max 1600px on longest side
+      const maxDim = 1600;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      // Compress to JPEG at 0.85 quality
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      res({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' });
+    };
+    img.onerror = rej;
+    img.src = url;
   });
-
-  const mediaType = file.type || 'image/jpeg';
 
   status.style.color = 'var(--amber)';
   status.textContent = '🔍 Identifying equipment...';
