@@ -1201,7 +1201,7 @@ function seedDemo() {
         purchaseDate: '',
         oilInterval: 999,
         trackHours: false,
-        notes: 'Fuel: 50:1 mix. Parts: Air Filter #1141-120-1600, Fuel Filter #0000-350-3518, Spark Plug NGK BPMR7A #0000-400-7000. Same filter family as MS271 — buy in bulk.',
+        notes: 'Fuel: 50:1 mix. Air Filter #1141-120-1600 and Fuel Filter #0000-350-3518 are SAME as MS271 — buy in bulk. Spark Plug is DIFFERENT: CMR6H #0000-400-7011 (MS271 uses BPMR7A). Service Kit 15 #11430074100.',
         maintenance: [
           { id: 'm2a', date: '2024-02-10', type: 'Air Filter', notes: 'Break-in service', nextDue: '' },
           { id: 'm2b', date: '2024-02-10', type: 'Spark Plug', notes: 'Break-in service', nextDue: '' },
@@ -1215,10 +1215,10 @@ function seedDemo() {
           { id: 'h2c', date: '2024-11-05', hours: 8, notes: 'Firewood season', total: 23 },
         ],
         parts: [
-          { id: 'p2a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #1141-120-1600 — same as MS271. Fits MS231/251/261/271/291/311/391.' },
-          { id: 'p2b', date: '2025-01-01', part: 'Fuel Filter (Pickup Body)', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #0000-350-3518 — orange/red filter body. Same as MS271.' },
-          { id: 'p2c', date: '2025-01-01', part: 'Spark Plug NGK BPMR7A', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7000 — NGK BPMR7A. Same as MS271. Replace annually.' },
-          { id: 'p2d', date: '2025-01-01', part: 'Service Kit (all 3 parts)', cost: 0, where: 'Stihl Dealer', notes: 'OEM Kit #1141-007-1800 — bundles air filter, fuel filter, spark plug. Same as MS271.' }
+          { id: 'p2a', date: '2025-01-01', part: 'Air Filter', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #1141-120-1600 — fleece type. Fits MS231/MS251.' },
+          { id: 'p2b', date: '2025-01-01', part: 'Fuel Filter (Pickup Body)', cost: 0, where: 'Stihl Dealer / Amazon', notes: 'OEM #0000-350-3518 — fits MS231/MS251. Different from MS271.' },
+          { id: 'p2c', date: '2025-01-01', part: 'Spark Plug NGK CMR6H', cost: 0, where: 'Stihl Dealer / NGK / Amazon', notes: 'OEM #0000-400-7011 — NGK CMR6H. Same as MS171, NOT same as MS271 (which uses BPMR7A). Replace annually.' },
+          { id: 'p2d', date: '2025-01-01', part: 'Service Kit 15 (all 3 parts)', cost: 0, where: 'Stihl Dealer', notes: 'OEM Kit #11430074100 — Service Kit 15 for MS231/MS251. NOT same as MS271 kit.' }
         ],
         totalHours: 23
       },
@@ -1232,7 +1232,7 @@ function seedDemo() {
         purchaseDate: '',
         oilInterval: 999,
         trackHours: false,
-        notes: 'Fuel: 50:1 mix. Parts: Air Filter #1141-120-1600, Fuel Filter #0000-350-3518, Spark Plug NGK BPMR7A #0000-400-7000. Same filter family as MS251 — buy in bulk.',
+        notes: 'Fuel: 50:1 mix. Air Filter #1141-120-1600 and Fuel Filter #0000-350-3518 are SAME as MS251 — buy in bulk. Spark Plug is DIFFERENT: BPMR7A #0000-400-7000 (MS251 uses CMR6H). Service Kit #1141-007-1800.',
         maintenance: [
           { id: 'm3a', date: '2024-02-10', type: 'Air Filter', notes: 'Break-in service', nextDue: '' },
           { id: 'm3b', date: '2024-02-10', type: 'Spark Plug', notes: 'Break-in service', nextDue: '' },
@@ -2028,6 +2028,25 @@ function renderReminders() {
       </div>`;
     }).join('');
 
+    // Render resolved (completed) tasks so the group can still be expanded
+    const resolvedTasksHtml = groupResolvedKeys.map(k => {
+      const withoutSuffix = k.slice(0, k.lastIndexOf('_install'));
+      const taskName = withoutSuffix.slice(withoutSuffix.indexOf('_') + 1);
+      return `<div class="todo-task" style="opacity:0.55">
+        <div class="todo-task-header">
+          <span class="todo-task-icon">✅</span>
+          <span class="todo-task-name" style="text-decoration:line-through">${taskName}</span>
+          <span class="todo-task-badge" style="background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.3)">Done</span>
+        </div>
+        <div class="todo-subtasks">
+          <div class="todo-subtask done" onclick="toggleTodo('${k}')">
+            <div class="todo-subtask-check">✓</div>
+            <span class="todo-subtask-label">🔧 Install part</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
     html += `<div class="todo-equip-group">
       <div class="todo-equip-header" onclick="toggleTodoGroup('${equipId}')">
         <div class="todo-equip-title">
@@ -2040,7 +2059,7 @@ function renderReminders() {
         </div>
         <span class="todo-equip-collapse" id="collapse-${equipId}" style="transform:rotate(-90deg)">▼</span>
       </div>
-      <div id="todo-tasks-${equipId}" class="todo-tasks" style="display:none">${tasksHtml}</div>
+      <div id="todo-tasks-${equipId}" class="todo-tasks" style="display:none">${tasksHtml}${resolvedTasksHtml}</div>
       <div class="todo-progress">
         <div class="todo-progress-bar-wrap"><div class="todo-progress-bar" style="width:${groupSubtasks > 0 ? Math.round(groupDone/groupSubtasks*100) : 0}%"></div></div>
         <span>${groupSubtasks > 0 ? Math.round(groupDone/groupSubtasks*100) : 0}% complete</span>
@@ -2432,16 +2451,16 @@ function resetAppData() {
   // Hardcoded canonical equipment names and static fields
   // These are the source of truth regardless of what's in localStorage
   const canonicalNames = {
-    e1:  { name: 'Stihl MS 171 Chainsaw',              type: '🪚 Chainsaw',        engine: '31.8cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 20 },
-    e2:  { name: 'Stihl MS 251 Wood Boss Chainsaw',    type: '🪚 Chainsaw',        engine: '45.6cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 23 },
-    e3:  { name: 'Stihl MS 271 Farm Boss Chainsaw',    type: '🪚 Chainsaw',        engine: '50.2cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 26 },
-    e4:  { name: 'Echo ES-250 Shred-N-Vac',            type: '🍂 Blower/Vac',      engine: '25.4cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 0 },
-    e5:  { name: 'Generac 2800 PSI Pressure Washer',   type: '🚿 Pressure Washer', engine: '196cc 4-stroke',                    oilInterval: 'annual', trackHours: false, totalHours: 0 },
-    e6:  { name: 'Push Mower (B&S EXi625)',            type: '🌿 Mower',           engine: 'B&S EXi 163cc 4-stroke',            oilInterval: 'annual', trackHours: false, totalHours: 0 },
-    e7:  { name: 'Champion 27-Ton Log Splitter',       type: '🪵 Log Splitter',    engine: 'Briggs & Stratton 208cc 4-stroke',  oilInterval: 'annual', trackHours: true,  totalHours: 59.6 },
-    e8:  { name: 'Husqvarna YTH2348 Riding Mower',     type: '🚜 Riding Mower',    engine: 'Briggs & Stratton 23HP',            oilInterval: 999,      trackHours: true,  totalHours: 993.2 },
-    e9:  { name: 'Stihl FS 70R Trimmer',               type: '🌿 Trimmer',         engine: '27.2cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 0 },
-    e10: { name: 'Cyclone Tow-Behind Leaf Vac',        type: '🍂 Blower/Vac',      engine: 'Vanguard 6.5HP 205cc 4-stroke',     oilInterval: 'annual', trackHours: true,  totalHours: 47.5 },
+    e1:  { name: 'Stihl MS 171 Chainsaw',              type: '🪚 Chainsaw',        engine: '31.8cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 20,   notes: 'Fuel: 50:1 mix. Air Filter #1139-120-1602, Fuel Filter #0000-350-3503, Spark Plug NGK CMR6H #0000-400-7015. Service Kit #1139-007-1800.' },
+    e2:  { name: 'Stihl MS 251 Wood Boss Chainsaw',    type: '🪚 Chainsaw',        engine: '45.6cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 23,   notes: 'Fuel: 50:1 mix. Air Filter #1141-120-1600 and Fuel Filter #0000-350-3518 are SAME as MS271 — buy in bulk. Spark Plug is DIFFERENT: CMR6H #0000-400-7011 (MS271 uses BPMR7A). Service Kit 15 #11430074100.' },
+    e3:  { name: 'Stihl MS 271 Farm Boss Chainsaw',    type: '🪚 Chainsaw',        engine: '50.2cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 26,   notes: 'Fuel: 50:1 mix. Air Filter #1141-120-1600 and Fuel Filter #0000-350-3518 are SAME as MS251 — buy in bulk. Spark Plug is DIFFERENT: BPMR7A #0000-400-7000 (MS251 uses CMR6H). Service Kit #1141-007-1800.' },
+    e4:  { name: 'Echo ES-250 Shred-N-Vac',            type: '🍂 Blower/Vac',      engine: '25.4cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 0,    notes: 'Fuel: 50:1 mix. 2-stroke — no oil change.' },
+    e5:  { name: 'Generac 2800 PSI Pressure Washer',   type: '🚿 Pressure Washer', engine: '196cc 4-stroke',                    oilInterval: 'annual', trackHours: false, totalHours: 0,    notes: 'Oil: SAE 30. Change annually or every 50hrs.' },
+    e6:  { name: 'Push Mower (B&S EXi625)',            type: '🌿 Mower',           engine: 'B&S EXi 163cc 4-stroke',            oilInterval: 'annual', trackHours: false, totalHours: 0,    notes: 'B&S EXi engine has NO oil drain — oil-for-life design. No oil changes. Air filter and spark plug annually.' },
+    e7:  { name: 'Champion 27-Ton Log Splitter',       type: '🪵 Log Splitter',    engine: 'Briggs & Stratton 208cc 4-stroke',  oilInterval: 'annual', trackHours: true,  totalHours: 59.6, notes: 'Oil: SAE 30, ~20oz. Change every 50hrs or annually. Grease beam and cylinder annually.' },
+    e8:  { name: 'Husqvarna YTH2348 Riding Mower',     type: '🚜 Riding Mower',    engine: 'Briggs & Stratton 23HP',            oilInterval: 999,      trackHours: true,  totalHours: 993.2,notes: 'Oil: SAE 30 or 10W-30, ~48oz with filter. Change every 50hrs. Two spark plugs. Blade sharpen March/September.' },
+    e9:  { name: 'Stihl FS 70R Trimmer',               type: '🌿 Trimmer',         engine: '27.2cc 2-stroke',                   oilInterval: 999,      trackHours: false, totalHours: 0,    notes: 'Fuel: 50:1 mix. 2-stroke — no oil change. Service Kit #4144-007-1800.' },
+    e10: { name: 'Cyclone Tow-Behind Leaf Vac',        type: '🍂 Blower/Vac',      engine: 'Vanguard 6.5HP 205cc 4-stroke',     oilInterval: 'annual', trackHours: true,  totalHours: 47.5, notes: 'Oil: SAE 30, ~20oz. Vanguard 6.5HP — change every 50hrs or annually.' },
   };
 
   const data = load();
@@ -2484,6 +2503,7 @@ function resetAppData() {
     eq.oilInterval = canonical.oilInterval;
     eq.trackHours = canonical.trackHours;
     if (canonical.totalHours !== undefined) eq.totalHours = canonical.totalHours;
+    if (canonical.notes !== undefined) eq.notes = canonical.notes;
     // Restore canonical service intervals
     if (canonicalServiceIntervals[eq.id]) {
       eq.serviceIntervals = canonicalServiceIntervals[eq.id];
