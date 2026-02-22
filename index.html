@@ -691,6 +691,7 @@
     .top-nav-btn { padding: 10px 14px; font-size: 0.72rem; flex-shrink: 0; white-space: nowrap; }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -1167,9 +1168,8 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ---------- Supabase ----------
+// ---------- Data ----------
 const SUPABASE_URL = 'https://zavnxlwqjiaudnetandu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inphdm54bHdxamlhdWRuZXRhbmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODY3ODYsImV4cCI6MjA4NzM2Mjc4Nn0.QHxEtjY5TvDY2EiIO-YNx6R3XxNmAsl3w-VxX283bks';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
