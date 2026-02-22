@@ -3227,6 +3227,9 @@ async function scanEquipmentPhoto(input) {
     });
 
     const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error?.message || `API error ${response.status}`);
+    }
     const text = data.content?.map(c => c.text || '').join('') || '';
     const clean = text.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
@@ -3251,12 +3254,63 @@ async function scanEquipmentPhoto(input) {
 
     const confidenceColor = result.confidence === 'high' ? 'var(--green)' : result.confidence === 'medium' ? 'var(--amber)' : '#e74c3c';
     status.style.color = confidenceColor;
-    status.innerHTML = `✓ Identified (${result.confidence} confidence)${result.notes ? '<br><span style="color:var(--text-muted)">' + result.notes + '</span>' : ''}<br><span style="color:var(--text-muted);font-size:0.75rem">Review and edit fields below before saving.</span>`;
+    status.innerHTML = `✓ Identified: <strong>${result.name}</strong> (${result.confidence} confidence)<br><span style="color:var(--amber);font-size:0.78rem">🔍 Looking up OEM parts & service intervals...</span>`;
+
+    // Second API call — look up OEM parts and service intervals for this model
+    const specsResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: `You are an outdoor power equipment expert. Look up the OEM service specifications for: ${result.name} (engine: ${result.engine}).
+
+Respond ONLY with a JSON object, no other text:
+{
+  "notes": "one-line equipment notes: fuel mix if 2-stroke, oil type/capacity if 4-stroke, key maintenance reminders",
+  "serviceIntervals": [
+    { "task": "task name e.g. Oil Change", "hours": 50, "icon": "🛢", "note": "detail e.g. SAE 30, ~20oz. Change every 50hrs or annually." }
+  ],
+  "parts": [
+    { "part": "part name e.g. Air Filter", "where": "where to buy e.g. Stihl Dealer / Amazon", "notes": "OEM part number and fitment notes" }
+  ]
+}
+
+Rules:
+- For 2-stroke engines: no oil change interval, include air filter, fuel filter, spark plug, service kit if available
+- For 4-stroke engines: include oil change, air filter, spark plug, oil filter if applicable
+- Always include OEM part numbers where known
+- serviceIntervals hours: use 999 for calendar-only tasks (2-stroke annual service), use actual hour interval for 4-stroke
+- icons: 🛢 oil, 💨 air filter, 🔩 spark plug, 🔧 oil filter, ⚙️ grease, 🔗 belt
+- Be specific to this exact model, not generic`
+        }]
+      })
+    });
+
+    const specsData = await specsResponse.json();
+    if (!specsResponse.ok) throw new Error(specsData.error?.message || 'Specs lookup failed');
+
+    const specsText = specsData.content?.map(c => c.text || '').join('') || '';
+    const specsClean = specsText.replace(/```json|```/g, '').trim();
+    const specs = JSON.parse(specsClean);
+
+    // Store specs on the modal for use when saving
+    window._pendingEquipSpecs = specs;
+
+    status.style.color = 'var(--green)';
+    status.innerHTML = `✅ Identified & specs loaded (${result.confidence} confidence)${result.notes ? '<br><span style="color:var(--text-muted);font-size:0.78rem">' + result.notes + '</span>' : ''}<br><span style="color:var(--text-muted);font-size:0.75rem">${specs.parts?.length||0} parts + ${specs.serviceIntervals?.length||0} service intervals ready. Review fields below then save.</span>`;
 
   } catch (err) {
     console.error('AI scan error:', err);
     status.style.color = '#e74c3c';
-    status.textContent = '⚠ Could not identify — please fill in manually.';
+    status.textContent = `⚠ ${err.message || 'Could not identify'} — please fill in manually.`;
   }
 }
 function openLogMaintenance() {
@@ -3341,6 +3395,11 @@ function saveEquipment() {
   const name = document.getElementById('newEquipName').value.trim();
   if (!name) { alert('Please enter a name.'); return; }
   const data = load();
+
+  // Pull in any AI-looked-up specs
+  const specs = window._pendingEquipSpecs || {};
+  window._pendingEquipSpecs = null;
+
   const eq = {
     id: uid(),
     name,
@@ -3350,14 +3409,25 @@ function saveEquipment() {
     serial: document.getElementById('newEquipSerial').value,
     purchaseDate: document.getElementById('newEquipDate').value,
     oilInterval: parseInt(document.getElementById('newEquipOilInterval').value)||50,
-    notes: '',
-    maintenance: [], hours: [], parts: [], totalHours: 0
+    notes: specs.notes || '',
+    serviceIntervals: specs.serviceIntervals || [],
+    maintenance: [], hours: [],
+    parts: (specs.parts || []).map((p, i) => ({
+      id: 'pai' + Date.now() + i,
+      date: new Date().toISOString().slice(0,10),
+      part: p.part,
+      cost: 0,
+      where: p.where || '',
+      notes: p.notes || ''
+    })),
+    totalHours: 0
   };
   data.equipment.push(eq);
   save(data);
   closeModal('modalAddEquipment');
   ['newEquipName','newEquipYear','newEquipEngine','newEquipSerial','newEquipDate'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('newEquipOilInterval').value='50';
+  document.getElementById('aiScanStatus').style.display='none';
   selectEquipment(eq.id);
 }
 
