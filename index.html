@@ -883,7 +883,7 @@
       <!-- AI Photo Scan -->
       <div id="aiScanSection" style="background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:18px;text-align:center">
         <div style="font-size:0.8rem;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">📷 Identify with Photo</div>
-        <input type="file" id="equipPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="scanEquipmentPhoto(this)">
+        <input type="file" id="equipPhotoInput" accept="image/*" style="display:none" onchange="scanEquipmentPhoto(this)">
         <button class="btn btn-secondary" style="width:100%;font-size:0.85rem" onclick="document.getElementById('equipPhotoInput').click()">📸 Take / Upload Photo</button>
         <div id="aiScanStatus" style="margin-top:10px;font-size:0.82rem;color:var(--text-muted);display:none"></div>
       </div>
