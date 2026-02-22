@@ -694,6 +694,33 @@
 </head>
 <body>
 
+<!-- Auth Screen -->
+<div id="authScreen" style="display:none;position:fixed;inset:0;background:#111;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+  <div style="width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:2.5rem;margin-bottom:8px">⛽</div>
+      <h1 style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:800;color:#F5821F;letter-spacing:2px;text-transform:uppercase;margin:0">GearLog</h1>
+      <p style="color:#888;font-size:0.85rem;margin:4px 0 0">Gas-Powered Equipment Tracker</p>
+    </div>
+    <div style="background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:6px;padding:24px">
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:0.75rem;font-family:'DM Mono',monospace;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Email</label>
+        <input id="authEmail" type="email" placeholder="you@email.com" style="width:100%;background:#111;border:1.5px solid #333;border-radius:4px;padding:10px 12px;color:#f0f0f0;font-size:0.9rem;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:0.75rem;font-family:'DM Mono',monospace;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Password</label>
+        <input id="authPassword" type="password" placeholder="••••••••" style="width:100%;background:#111;border:1.5px solid #333;border-radius:4px;padding:10px 12px;color:#f0f0f0;font-size:0.9rem;box-sizing:border-box">
+      </div>
+      <button onclick="signIn()" style="width:100%;background:#F5821F;border:none;border-radius:4px;padding:12px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:10px">Sign In</button>
+      <button onclick="signUp()" style="width:100%;background:transparent;border:1.5px solid #444;border-radius:4px;padding:12px;color:#aaa;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Create Account</button>
+      <div id="authStatus" style="margin-top:12px;font-size:0.8rem;color:#F5821F;text-align:center;min-height:20px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="appScreen" style="display:none">
+
 <header>
   <div class="brand">
     <h1>⛽ Shively's GearLog</h1>
@@ -704,6 +731,7 @@
     <button class="btn-add-equipment" onclick="openAddEquipment()">+ Add Equipment</button>
     <button onclick="resetAppData()" style="background:transparent;border:1px solid #555;color:#888;border-radius:4px;padding:9px 14px;font-family:var(--font-head);font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer" title="Reset all app data to defaults">↺ Reset</button>
     <button onclick="clearApiKey()" style="background:transparent;border:1px solid #555;color:#888;border-radius:4px;padding:9px 14px;font-family:var(--font-head);font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer" title="Clear saved Anthropic API key">🔑 API Key</button>
+    <button onclick="signOut()" style="background:transparent;border:1px solid #555;color:#888;border-radius:4px;padding:9px 14px;font-family:var(--font-head);font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer">⬡ Sign Out</button>
   </div>
 </header>
 
@@ -1139,8 +1167,71 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ---------- Data ----------
+// ---------- Supabase ----------
+const SUPABASE_URL = 'https://zavnxlwqjiaudnetandu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inphdm54bHdxamlhdWRuZXRhbmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODY3ODYsImV4cCI6MjA4NzM2Mjc4Nn0.QHxEtjY5TvDY2EiIO-YNx6R3XxNmAsl3w-VxX283bks';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  currentUser = session?.user || null;
+  if (currentUser) {
+    showApp();
+  } else {
+    showAuthScreen();
+  }
+
+  sb.auth.onAuthStateChange((_event, session) => {
+    currentUser = session?.user || null;
+    if (currentUser) {
+      showApp();
+    } else {
+      showAuthScreen();
+    }
+  });
+}
+
+function showAuthScreen() {
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('appScreen').style.display = 'none';
+}
+
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  initApp();
+}
+
+async function signUp() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const status = document.getElementById('authStatus');
+  if (!email || !password) { status.textContent = 'Please enter email and password.'; return; }
+  status.textContent = 'Creating account...';
+  const { error } = await sb.auth.signUp({ email, password });
+  if (error) { status.textContent = error.message; }
+  else { status.textContent = 'Check your email to confirm your account!'; }
+}
+
+async function signIn() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const status = document.getElementById('authStatus');
+  if (!email || !password) { status.textContent = 'Please enter email and password.'; return; }
+  status.textContent = 'Signing in...';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { status.textContent = error.message; }
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+}
+</script>
+
 function load() {
   return JSON.parse(localStorage.getItem('gearlog') || '{"equipment":[]}');
 }
@@ -3706,7 +3797,12 @@ if ('serviceWorker' in navigator) {
   save(data);
 })();
 
-renderAll();
+function initApp() {
+  renderAll();
+}
+
+// Start with auth
+initAuth();
 
 // ============================================================
 // F6 — PHOTO ATTACHMENT
@@ -3947,6 +4043,8 @@ function renderHistory() {
     </div>
   </div>
 </div>
+
+</div><!-- end appScreen -->
 
 </body>
 </html>
