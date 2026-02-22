@@ -1169,7 +1169,7 @@
 </div>
 
 <script>
-// ---------- Data ----------
+// ---------- Supabase & Auth ----------
 const SUPABASE_URL = 'https://zavnxlwqjiaudnetandu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inphdm54bHdxamlhdWRuZXRhbmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3ODY3ODYsImV4cCI6MjA4NzM2Mjc4Nn0.QHxEtjY5TvDY2EiIO-YNx6R3XxNmAsl3w-VxX283bks';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1177,22 +1177,28 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
 async function initAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  currentUser = session?.user || null;
-  if (currentUser) {
-    showApp();
-  } else {
-    showAuthScreen();
-  }
-
-  sb.auth.onAuthStateChange((_event, session) => {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
     if (currentUser) {
       showApp();
     } else {
       showAuthScreen();
     }
-  });
+
+    sb.auth.onAuthStateChange((_event, session) => {
+      currentUser = session?.user || null;
+      if (currentUser) {
+        showApp();
+      } else {
+        showAuthScreen();
+      }
+    });
+  } catch(err) {
+    console.error('Auth init failed:', err);
+    // Fallback — show auth screen so at least something renders
+    showAuthScreen();
+  }
 }
 
 function showAuthScreen() {
@@ -1230,8 +1236,8 @@ async function signIn() {
 async function signOut() {
   await sb.auth.signOut();
 }
-</script>
 
+// ---------- Data ----------
 function load() {
   return JSON.parse(localStorage.getItem('gearlog') || '{"equipment":[]}');
 }
@@ -3883,6 +3889,7 @@ function printQrLabel() {
   if (!img) return;
 
   const imgSrc = img.tagName === 'CANVAS' ? img.toDataURL() : img.src;
+  const printScript = '<scr' + 'ipt>window.onload = () => { window.print(); }</scr' + 'ipt>';
   const win = window.open('', '_blank');
   win.document.write(`<!DOCTYPE html><html><head><title>GearLog Label — ${eq.name}</title>
   <style>
@@ -3900,7 +3907,7 @@ function printQrLabel() {
     <div class="sub">${eq.engine || ''}</div>
     ${eq.serial ? `<div class="sub">S/N: ${eq.serial}</div>` : ''}
   </div>
-  <script>window.onload = () => { window.print(); }<\/script>
+  ${printScript}
   </body></html>`);
   win.document.close();
 }
