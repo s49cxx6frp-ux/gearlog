@@ -730,9 +730,6 @@
   <div style="display:flex;gap:10px;align-items:center">
     <button id="pwaInstallBtn" onclick="installPWA()">⬇ Install App</button>
     <button class="btn-add-equipment" onclick="openAddEquipment()">+ Add Equipment</button>
-    <button onclick="resetAppData()" style="background:transparent;border:1px solid #555;color:#888;border-radius:4px;padding:9px 14px;font-family:var(--font-head);font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer" title="Reset all app data to defaults">↺ Reset</button>
-    <button onclick="clearApiKey()" style="background:transparent;border:1px solid #555;color:#888;border-radius:4px;padding:9px 14px;font-family:var(--font-head);font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer" title="Clear saved Anthropic API key">🔑 API Key</button>
-    <button onclick="signOut()" style="background:transparent;border:1px solid #555;color:#888;border-radius:4px;padding:9px 14px;font-family:var(--font-head);font-size:0.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer">⬡ Sign Out</button>
   </div>
 </header>
 
@@ -741,6 +738,7 @@
   <button class="top-nav-btn" id="nav-reminders" onclick="switchPage('reminders')">✅ To-Do <span id="reminderBadge" style="display:none;background:#e04e4e;color:white;border-radius:10px;padding:1px 7px;font-size:0.72rem;margin-left:4px;"></span></button>
   <button class="top-nav-btn" id="nav-shopping" onclick="switchPage('shopping')">🛒 Shopping List</button>
   <button class="top-nav-btn" id="nav-history" onclick="switchPage('history')">📅 History</button>
+  <button class="top-nav-btn" id="nav-account" onclick="switchPage('account')">⚙️ Account</button>
 </nav>
 
 <main>
@@ -899,6 +897,62 @@
     <div id="historyContent"></div>
   </div><!-- /page-history -->
 
+  <!-- ===== ACCOUNT PAGE ===== -->
+  <div class="page-view" id="page-account">
+    <div style="max-width:480px;margin:0 auto;padding:8px 0">
+
+      <!-- Account Info -->
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2)">
+          <div style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted)">Account</div>
+        </div>
+        <div style="padding:20px">
+          <div style="margin-bottom:16px">
+            <div style="font-size:0.75rem;font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Email</div>
+            <div id="accountEmail" style="font-size:0.95rem;color:var(--text);font-weight:500">—</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Plan</div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span id="accountPlanBadge" style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:20px;background:var(--surface2);border:1.5px solid var(--border);color:var(--text-muted)">Free</span>
+              <button id="accountUpgradeBtn" onclick="document.getElementById('paywallModal').style.display='flex'" style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:4px;background:var(--amber);border:none;color:#fff;cursor:pointer">⚡ Upgrade to Pro</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password -->
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2)">
+          <div style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted)">Change Password</div>
+        </div>
+        <div style="padding:20px">
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:0.75rem;font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">New Password</label>
+            <input type="password" id="newPassword" placeholder="••••••••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-size:0.9rem;box-sizing:border-box">
+          </div>
+          <div style="margin-bottom:16px">
+            <label style="display:block;font-size:0.75rem;font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="••••••••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-size:0.9rem;box-sizing:border-box">
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button onclick="changePassword()" style="font-family:var(--font-head);font-size:0.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;border-radius:4px;background:var(--green-dark);border:1px solid var(--green-dim);color:#fff;cursor:pointer">Update Password</button>
+            <span id="passwordStatus" style="font-size:0.82rem;color:var(--text-muted)"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sign Out -->
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <div style="padding:20px">
+          <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px">You are signed in as <strong id="accountEmailInline">—</strong></div>
+          <button onclick="signOut()" style="font-family:var(--font-head);font-size:0.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;border-radius:4px;background:transparent;border:1.5px solid var(--border-bright);color:var(--text-muted);-webkit-text-fill-color:var(--text-muted);cursor:pointer">⬡ Sign Out</button>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /page-account -->
+
 </main>
 
 <!-- Add Equipment Modal -->
@@ -1027,7 +1081,7 @@
 <div class="modal-overlay" id="modalMaintenance">
   <div class="modal">
     <div class="modal-header">
-      <h3>Log Maintenance</h3>
+      <h3 id="modalMaintenanceTitle">Log Maintenance</h3>
       <button class="modal-close" onclick="closeModal('modalMaintenance')">✕</button>
     </div>
     <div class="modal-body">
@@ -1077,7 +1131,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalMaintenance')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveMaintenance()">Save</button>
+      <button class="btn btn-primary" id="modalMaintenanceSaveBtn" onclick="saveMaintenance()">Save</button>
     </div>
   </div>
 </div>
@@ -1876,6 +1930,7 @@ function switchPage(page) {
   if (page === 'reminders') renderReminders();
   if (page === 'shopping') renderShopping();
   if (page === 'history') renderHistory();
+  if (page === 'account') renderAccount();
 }
 
 function renderAlerts(data) {
@@ -3299,7 +3354,10 @@ function renderDetail() {
     <td><span class="badge badge-maintenance">${m.type}</span></td>
     <td>${m.notes||'—'}${m.photo ? `<br><img src="${m.photo}" onclick="this.style.maxHeight=this.style.maxHeight?'':'400px'" style="max-height:60px;max-width:120px;border-radius:6px;cursor:pointer;margin-top:6px;border:1px solid var(--border);transition:max-height 0.3s" title="Click to expand">` : ''}</td>
     <td>${m.nextDue||'—'}</td>
-    <td><button onclick="deleteMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:2px 6px;border-radius:4px;transition:color 0.15s" title="Delete entry" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button></td>
+    <td style="white-space:nowrap">
+      <button onclick="openEditMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:2px 6px;border-radius:4px;transition:color 0.15s" title="Edit entry" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-light)'">✏️</button>
+      <button onclick="deleteMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:2px 6px;border-radius:4px;transition:color 0.15s" title="Delete entry" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button>
+    </td>
   </tr>`).join('') : '<tr><td colspan="5" class="no-logs"><div class="icon">🔧</div>No maintenance logged yet.</td></tr>';
 
   // Hours tab
@@ -3576,6 +3634,13 @@ function openLogMaintenance() {
   } else {
     document.getElementById('mNextDue').value = '';
   }
+  // Reset to add mode
+  editingMaintId = null;
+  document.getElementById('mNotes').value = '';
+  document.getElementById('mType').value = 'Oil Change';
+  document.getElementById('modalMaintenanceTitle').textContent = 'Log Maintenance';
+  document.getElementById('modalMaintenanceSaveBtn').textContent = 'Save';
+  clearMaintPhoto();
   openModal('modalMaintenance');
 }
 function openLogHours() { if (!currentEquipId) return; document.getElementById('hDate').value = today(); openModal('modalHours'); }
@@ -3718,30 +3783,84 @@ function deletePart(equipId, partId) {
   renderAll();
 }
 
+let editingMaintId = null; // null = adding new, string = editing existing
+
+function openEditMaintenance(equipId, maintId) {
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return;
+  const m = eq.maintenance.find(m => m.id === maintId);
+  if (!m) return;
+
+  // Set editing state
+  editingMaintId = maintId;
+  currentEquipId = equipId;
+
+  // Pre-populate fields
+  document.getElementById('mDate').value = m.date || '';
+  document.getElementById('mType').value = m.type || 'Oil Change';
+  document.getElementById('mNotes').value = m.notes || '';
+  document.getElementById('mNextDue').value = m.nextDue || '';
+
+  // Handle existing photo
+  if (m.photo) {
+    pendingMaintPhoto = m.photo;
+    document.getElementById('mPhotoName').textContent = 'Existing photo';
+    document.getElementById('mPhotoImg').src = m.photo;
+    document.getElementById('mPhotoPreview').style.display = 'block';
+  } else {
+    clearMaintPhoto();
+  }
+
+  // Update modal title and button
+  document.getElementById('modalMaintenanceTitle').textContent = 'Edit Maintenance';
+  document.getElementById('modalMaintenanceSaveBtn').textContent = 'Save Changes';
+
+  document.getElementById('modalMaintenance').classList.add('active');
+}
+
 function saveMaintenance() {
   const data = load();
-  const eq = data.equipment.find(e=>e.id===currentEquipId);
+  const eq = data.equipment.find(e => e.id === currentEquipId);
   if (!eq) return;
   const mDate = document.getElementById('mDate').value || today();
   const mType = document.getElementById('mType').value;
   const mNextDue = document.getElementById('mNextDue').value ||
     (shouldAutoNextDue(eq, mType) ? oneYearOut(mDate) : '');
-  const entry = {
-    id: uid(),
-    date: mDate,
-    type: mType,
-    notes: document.getElementById('mNotes').value,
-    nextDue: mNextDue,
-  };
-  // Attach photo if one was selected
-  if (pendingMaintPhoto) {
-    entry.photo = pendingMaintPhoto;
+
+  if (editingMaintId) {
+    // Edit existing entry
+    const m = eq.maintenance.find(m => m.id === editingMaintId);
+    if (m) {
+      m.date = mDate;
+      m.type = mType;
+      m.notes = document.getElementById('mNotes').value;
+      m.nextDue = mNextDue;
+      m.photo = pendingMaintPhoto || m.photo || null;
+    }
+    editingMaintId = null;
+  } else {
+    // Add new entry
+    const entry = {
+      id: uid(),
+      date: mDate,
+      type: mType,
+      notes: document.getElementById('mNotes').value,
+      nextDue: mNextDue,
+    };
+    if (pendingMaintPhoto) entry.photo = pendingMaintPhoto;
+    eq.maintenance.push(entry);
   }
-  eq.maintenance.push(entry);
+
   save(data);
   closeModal('modalMaintenance');
   ['mNotes','mNextDue'].forEach(id=>document.getElementById(id).value='');
   clearMaintPhoto();
+
+  // Reset modal title/button back to add mode
+  document.getElementById('modalMaintenanceTitle').textContent = 'Log Maintenance';
+  document.getElementById('modalMaintenanceSaveBtn').textContent = 'Save';
+
   renderAll();
 }
 
@@ -4183,6 +4302,57 @@ function renderHistory() {
   });
 
   el.innerHTML = html;
+}
+
+function renderAccount() {
+  const email = currentUser?.email || '—';
+  const els = document.querySelectorAll('#accountEmail, #accountEmailInline');
+  els.forEach(el => { if (el) el.textContent = email; });
+
+  const badge = document.getElementById('accountPlanBadge');
+  const upgradeBtn = document.getElementById('accountUpgradeBtn');
+  if (currentPlan === 'paid') {
+    badge.textContent = '⚡ Pro';
+    badge.style.background = 'rgba(245,130,31,0.15)';
+    badge.style.borderColor = 'var(--amber)';
+    badge.style.color = 'var(--amber)';
+    if (upgradeBtn) upgradeBtn.style.display = 'none';
+  } else {
+    badge.textContent = 'Free';
+    badge.style.background = 'var(--surface2)';
+    badge.style.borderColor = 'var(--border)';
+    badge.style.color = 'var(--text-muted)';
+    if (upgradeBtn) upgradeBtn.style.display = 'inline-block';
+  }
+
+  // Clear password fields
+  ['newPassword','confirmPassword'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const status = document.getElementById('passwordStatus');
+  if (status) status.textContent = '';
+}
+
+async function changePassword() {
+  const newPw = document.getElementById('newPassword').value;
+  const confirmPw = document.getElementById('confirmPassword').value;
+  const status = document.getElementById('passwordStatus');
+  if (!newPw) { status.style.color = 'var(--red)'; status.textContent = 'Enter a new password.'; return; }
+  if (newPw !== confirmPw) { status.style.color = 'var(--red)'; status.textContent = 'Passwords do not match.'; return; }
+  if (newPw.length < 6) { status.style.color = 'var(--red)'; status.textContent = 'Password must be at least 6 characters.'; return; }
+  status.style.color = 'var(--text-muted)';
+  status.textContent = 'Updating...';
+  const { error } = await sb.auth.updateUser({ password: newPw });
+  if (error) {
+    status.style.color = 'var(--red)';
+    status.textContent = error.message;
+  } else {
+    status.style.color = 'var(--green)';
+    status.textContent = '✓ Password updated!';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+  }
 }
 
 </script>
