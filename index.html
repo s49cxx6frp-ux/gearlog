@@ -1758,7 +1758,8 @@ function deduplicateRefParts() {
 
 // ---------- Render ----------
 function renderAll() {
-  seedDemo();
+  // Only seed demo data if user is NOT logged in (unauthenticated preview)
+  if (!currentUser) seedDemo();
   deduplicateRefParts();
   rebuildKitMaps();
   const data = load();
@@ -1773,7 +1774,19 @@ function getIcon(type) {
 function renderEquipmentGrid(data) {
   const tbody = document.getElementById('equipmentGridBody');
   if (!data.equipment.length) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="no-logs"><div class="icon">🌿</div>No equipment yet — add your first piece of gear above.</td></tr>`;
+    if (tbody) tbody.innerHTML = `
+      <tr><td colspan="5">
+        <div style="text-align:center;padding:48px 24px">
+          <div style="font-size:3rem;margin-bottom:16px">🔧</div>
+          <div style="font-family:var(--font-head);font-size:1.4rem;font-weight:700;color:var(--text);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Welcome to GearLog</div>
+          <div style="color:var(--text-muted);font-size:0.88rem;margin-bottom:24px;max-width:320px;margin-left:auto;margin-right:auto">Track maintenance, parts, and service intervals for all your outdoor power equipment.</div>
+          <div style="display:flex;flex-direction:column;gap:12px;max-width:280px;margin:0 auto">
+            <button class="btn btn-primary" style="width:100%;padding:14px;font-size:0.95rem" onclick="document.getElementById('equipPhotoInput').click();openAddEquipment()">📸 Scan Equipment Photo</button>
+            <button class="btn btn-secondary" style="width:100%;padding:14px;font-size:0.95rem" onclick="openAddEquipment()">✏️ Add Manually</button>
+          </div>
+          <div style="margin-top:24px;font-size:0.75rem;color:var(--text-light)">Tip: Take a photo of your equipment and AI will identify it automatically</div>
+        </div>
+      </td></tr>`;
     return;
   }
   const allIssues = getMaintenanceIssues(data);
