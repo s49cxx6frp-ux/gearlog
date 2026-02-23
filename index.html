@@ -712,7 +712,7 @@
         <label style="display:block;font-size:0.75rem;font-family:'DM Mono',monospace;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Password</label>
         <input id="authPassword" type="password" placeholder="••••••••" style="width:100%;background:#111;border:1.5px solid #333;border-radius:4px;padding:10px 12px;color:#f0f0f0;font-size:0.9rem;box-sizing:border-box">
       </div>
-      <button onclick="signIn()" style="width:100%;background:#F5821F;border:none;border-radius:4px;padding:12px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:10px">Sign In</button>
+      <button onclick="signIn()" style="width:100%;background:#F5821F;border:none;border-radius:4px;padding:12px;color:#fff;-webkit-text-fill-color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:10px">Sign In</button>
       <button onclick="signUp()" style="width:100%;background:transparent;border:1.5px solid #444;border-radius:4px;padding:12px;color:#aaa;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Create Account</button>
       <div id="authStatus" style="margin-top:12px;font-size:0.8rem;color:#F5821F;text-align:center;min-height:20px"></div>
     </div>
@@ -1175,6 +1175,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
+let currentPlan = 'free'; // 'free' or 'paid'
 
 async function initAuth() {
   try {
@@ -1244,6 +1245,17 @@ async function signOut() {
   await sb.auth.signOut();
 }
 
+// ---------- Plan ----------
+async function loadUserPlan() {
+  if (!currentUser) { currentPlan = 'free'; return; }
+  try {
+    const { data, error } = await sb.from('profiles').select('plan').eq('id', currentUser.id).single();
+    currentPlan = (data && !error) ? (data.plan || 'free') : 'free';
+  } catch(e) {
+    currentPlan = 'free';
+  }
+}
+
 // ---------- Data ----------
 function load() {
   return JSON.parse(localStorage.getItem('gearlog') || '{"equipment":[]}');
@@ -1289,7 +1301,8 @@ async function pushToSupabase(data) {
           eq.maintenance.map(m => ({
             id: m.id, user_id: uid, equipment_id: eq.id,
             date: m.date || today, type: m.type || '',
-            notes: m.notes || '', next_due: m.nextDue || ''
+            notes: m.notes || '', next_due: m.nextDue || '',
+            photo: m.photo || null
           })), { onConflict: 'id' }
         );
       }
@@ -1342,7 +1355,7 @@ async function loadFromSupabase() {
         trackHours: eq.track_hours, totalHours: eq.total_hours,
         notes: eq.notes, serviceIntervals: eq.service_intervals || [],
         maintenance: (maintenance || []).filter(m => m.equipment_id === eq.id)
-          .map(m => ({ id: m.id, date: m.date, type: m.type, notes: m.notes, nextDue: m.next_due })),
+          .map(m => ({ id: m.id, date: m.date, type: m.type, notes: m.notes, nextDue: m.next_due, photo: m.photo || null })),
         hours: (hours || []).filter(h => h.equipment_id === eq.id)
           .map(h => ({ id: h.id, date: h.date, hours: h.hours, notes: h.notes, total: h.total })),
         parts: (parts || []).filter(p => p.equipment_id === eq.id)
@@ -3632,6 +3645,13 @@ function saveEquipment() {
   if (!name) { alert('Please enter a name.'); return; }
   const data = load();
 
+  // Free tier gate — max 3 equipment
+  if (currentPlan === 'free' && data.equipment.length >= 3) {
+    closeModal('modalAddEquipment');
+    document.getElementById('paywallModal').style.display = 'flex';
+    return;
+  }
+
   // Pull in any AI-looked-up specs
   const specs = window._pendingEquipSpecs || {};
   window._pendingEquipSpecs = null;
@@ -3928,6 +3948,8 @@ if ('serviceWorker' in navigator) {
 })();
 
 async function initApp() {
+  // Load user plan first
+  await loadUserPlan();
   // Try to load data from Supabase first
   const cloudData = await loadFromSupabase();
   if (cloudData && cloudData.equipment.length > 0) {
@@ -4177,6 +4199,35 @@ function renderHistory() {
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="dismissKitPrompt()">No, keep individual parts</button>
       <button class="btn btn-primary" id="kitPromptYes" onclick="switchToKit()" style="background:var(--amber);border-color:var(--amber)">Yes, switch to kit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Paywall Modal -->
+<div id="paywallModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:24px">
+  <div style="background:var(--surface);border-radius:12px;max-width:380px;width:100%;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.4)">
+    <div style="background:var(--amber);padding:24px;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:8px">🔒</div>
+      <div style="font-family:var(--font-head);font-size:1.4rem;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase">Free Limit Reached</div>
+    </div>
+    <div style="padding:24px;text-align:center">
+      <p style="color:var(--text);font-size:0.95rem;margin:0 0 8px 0">Free accounts track up to <strong>3 pieces of equipment</strong>.</p>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 24px 0">Upgrade to GearLog Pro for unlimited equipment, cloud sync across all your devices, and more.</p>
+      <div style="background:var(--bg);border-radius:8px;padding:16px;margin-bottom:24px;text-align:left">
+        <div style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">GearLog Pro includes:</div>
+        <div style="font-size:0.85rem;color:var(--text);display:flex;flex-direction:column;gap:6px">
+          <span>✅ Unlimited equipment</span>
+          <span>✅ Cloud sync & multi-device</span>
+          <span>✅ AI photo identification</span>
+          <span>✅ Full maintenance history</span>
+        </div>
+        <div style="margin-top:14px;text-align:center">
+          <span style="font-family:var(--font-head);font-size:1.6rem;font-weight:700;color:var(--text)">$4.99</span>
+          <span style="color:var(--text-muted);font-size:0.85rem"> / month</span>
+        </div>
+      </div>
+      <button onclick="document.getElementById('paywallModal').style.display='none'" style="width:100%;background:var(--amber);border:none;border-radius:6px;padding:14px;color:#fff;font-family:var(--font-head);font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:10px">Upgrade to Pro — Coming Soon</button>
+      <button onclick="document.getElementById('paywallModal').style.display='none'" style="width:100%;background:transparent;border:1.5px solid var(--border);border-radius:6px;padding:12px;color:var(--text-muted);font-family:var(--font-head);font-size:0.85rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Maybe Later</button>
     </div>
   </div>
 </div>
