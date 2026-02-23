@@ -1234,6 +1234,13 @@ async function signIn() {
 }
 
 async function signOut() {
+  localStorage.removeItem('gearlog');
+  localStorage.removeItem('gearlog_checked');
+  localStorage.removeItem('gearlog_todo');
+  localStorage.removeItem('gearlog_custom_shop');
+  localStorage.removeItem('gearlog_replaced_by_kit');
+  localStorage.removeItem('gearlog_seed_snapshot');
+  localStorage.removeItem('gearlog_seed_version');
   await sb.auth.signOut();
 }
 
