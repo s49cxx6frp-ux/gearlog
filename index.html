@@ -3755,7 +3755,7 @@ function openEditMaintenance(equipId, maintId) {
   document.getElementById('modalMaintenance').classList.add('visible');
 }
 
-function saveMaintenance() {
+async function saveMaintenance() {
   const data = load();
   const eq = data.equipment.find(e => e.id === currentEquipId);
   if (!eq) return;
@@ -3772,6 +3772,10 @@ function saveMaintenance() {
       m.type = mType;
       m.notes = document.getElementById('mNotes').value;
       m.nextDue = mNextDue;
+      if (_pendingPhotoFile) {
+        const uploadedUrl = await uploadPendingPhoto();
+        if (uploadedUrl) pendingMaintPhoto = uploadedUrl;
+      }
       m.photo = pendingMaintPhoto || m.photo || null;
     }
     editingMaintId = null;
@@ -3784,6 +3788,10 @@ function saveMaintenance() {
       notes: document.getElementById('mNotes').value,
       nextDue: mNextDue,
     };
+    if (_pendingPhotoFile) {
+      const uploadedUrl = await uploadPendingPhoto();
+      if (uploadedUrl) pendingMaintPhoto = uploadedUrl;
+    }
     if (pendingMaintPhoto) entry.photo = pendingMaintPhoto;
     eq.maintenance.push(entry);
   }
@@ -4020,14 +4028,16 @@ initAuth();
 // ============================================================
 // F6 — PHOTO ATTACHMENT
 // ============================================================
-let pendingMaintPhoto = null;
+let pendingMaintPhoto = null;   // will hold a Storage URL after upload
+let _pendingPhotoFile = null;   // holds the raw File object before upload
 
 function previewMaintPhoto(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
+  _pendingPhotoFile = file;
+  // Show local preview immediately
   const reader = new FileReader();
   reader.onload = e => {
-    pendingMaintPhoto = e.target.result;
     document.getElementById('mPhotoName').textContent = file.name;
     document.getElementById('mPhotoImg').src = e.target.result;
     document.getElementById('mPhotoPreview').style.display = 'block';
@@ -4035,8 +4045,26 @@ function previewMaintPhoto(input) {
   reader.readAsDataURL(file);
 }
 
+async function uploadPendingPhoto() {
+  if (!_pendingPhotoFile || !currentUser) return null;
+  try {
+    const ext = _pendingPhotoFile.name.split('.').pop() || 'jpg';
+    const path = `${currentUser.id}/${Date.now()}.${ext}`;
+    const { error } = await sb.storage
+      .from('maintenance-photos')
+      .upload(path, _pendingPhotoFile, { contentType: _pendingPhotoFile.type, upsert: false });
+    if (error) throw error;
+    const { data } = sb.storage.from('maintenance-photos').getPublicUrl(path);
+    return data.publicUrl;
+  } catch (err) {
+    console.error('Photo upload failed:', err);
+    return null;
+  }
+}
+
 function clearMaintPhoto() {
   pendingMaintPhoto = null;
+  _pendingPhotoFile = null;
   document.getElementById('mPhoto').value = '';
   document.getElementById('mPhotoName').textContent = 'No photo';
   document.getElementById('mPhotoPreview').style.display = 'none';
