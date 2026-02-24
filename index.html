@@ -4020,6 +4020,44 @@ async function initApp() {
     localStorage.setItem('gearlog', JSON.stringify(cloudData));
   }
   renderAll();
+  // Show upgrade success toast if redirected from Stripe
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('upgraded') === 'true') {
+    showUpgradeToast();
+    // Clean the URL without reloading
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+function showUpgradeToast() {
+  const toast = document.createElement('div');
+  toast.id = 'upgradeToast';
+  toast.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-size:1.5rem">&#x26A1;</div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#fff">Welcome to GearLog Pro!</div>
+        <div style="font-size:0.75rem;color:#ddd;margin-top:2px">Your subscription is active. All Pro features unlocked.</div>
+      </div>
+      <button onclick="document.getElementById('upgradeToast').remove()" style="background:transparent;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:4px;margin-left:8px;opacity:0.7">&#x2715;</button>
+    </div>`;
+  toast.style.cssText = `
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:linear-gradient(135deg,#F5821F,#e06b10);
+    border-radius:8px;padding:16px 20px;
+    box-shadow:0 8px 32px rgba(245,130,31,0.4);
+    z-index:9999;max-width:420px;width:calc(100% - 48px);
+    animation:slideUp 0.3s ease;`;
+  // Add animation keyframe if not present
+  if (!document.getElementById('toastStyle')) {
+    const style = document.createElement('style');
+    style.id = 'toastStyle';
+    style.textContent = '@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+    document.head.appendChild(style);
+  }
+  document.body.appendChild(toast);
+  // Auto-dismiss after 6 seconds
+  setTimeout(() => { if (document.getElementById('upgradeToast')) toast.remove(); }, 6000);
 }
 
 // Start with auth
