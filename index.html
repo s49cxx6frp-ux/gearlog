@@ -752,6 +752,7 @@
 
 <nav class="top-nav">
   <button class="top-nav-btn active" id="nav-garage" onclick="switchPage('garage')">🏠 Garage</button>
+  <button class="top-nav-btn" id="nav-upcoming" onclick="switchPage('upcoming')">📆 Upcoming</button>
   <button class="top-nav-btn" id="nav-reminders" onclick="switchPage('reminders')">✅ To-Do <span id="reminderBadge" style="display:none;background:#e04e4e;color:white;border-radius:10px;padding:1px 7px;font-size:0.72rem;margin-left:4px;"></span></button>
   <button class="top-nav-btn" id="nav-shopping" onclick="switchPage('shopping')">🛒 Shopping List</button>
   <button class="top-nav-btn" id="nav-history" onclick="switchPage('history')">📅 History</button>
@@ -759,6 +760,22 @@
 </nav>
 
 <main>
+
+  <!-- ===== UPCOMING PAGE ===== -->
+  <div class="page-view" id="page-upcoming">
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <button id="upcomingBtn30" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px;border-color:var(--amber);color:var(--amber)" onclick="setUpcomingRange(30)">Next 30 Days</button>
+      <button id="upcomingBtn180" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setUpcomingRange(180)">Next 6 Months</button>
+      <button id="upcomingBtnCustom" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setUpcomingRange('custom')">Custom</button>
+      <span id="upcomingCustomInputs" style="display:none;gap:8px;align-items:center">
+        <input type="date" id="upcomingFrom" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;color:var(--text);font-size:0.8rem">
+        <span style="color:var(--text-muted)">to</span>
+        <input type="date" id="upcomingTo" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;color:var(--text);font-size:0.8rem">
+        <button class="btn btn-secondary" style="font-size:0.78rem;padding:5px 10px" onclick="renderUpcoming()">Go</button>
+      </span>
+    </div>
+    <div id="upcomingContent"></div>
+  </div><!-- /page-upcoming -->
 
   <!-- ===== GARAGE PAGE ===== -->\
   <div class="page-view active" id="page-garage">
@@ -1110,6 +1127,24 @@
       <div class="form-group">
         <label>Purchase Date</label>
         <input type="date" id="editEquipDate">
+      </div>
+      <div class="form-group">
+        <label>Added to Garage</label>
+        <input type="date" id="editEquipAddedAt">
+      </div>
+      <div id="editEquipHourSettings" style="display:none">
+        <div class="form-group">
+          <label>Service Interval Trigger</label>
+          <select id="editEquipTrigger">
+            <option value="both">Hours OR Calendar (whichever comes first)</option>
+            <option value="hours">Hours Only</option>
+            <option value="calendar">Calendar Only</option>
+          </select>
+        </div>
+        <div class="form-group" id="editEquipCalYearsGroup">
+          <label>Calendar Fallback (years)</label>
+          <input type="number" id="editEquipCalYears" min="1" max="10" value="2" placeholder="2">
+        </div>
       </div>
       <div class="form-group">
         <label>Notes</label>
@@ -2029,11 +2064,125 @@ function switchPage(page) {
   document.querySelectorAll('.top-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   document.getElementById('nav-' + page).classList.add('active');
+  if (page === 'upcoming') renderUpcoming();
   if (page === 'garage') renderEquipmentGrid(load());
   if (page === 'reminders') renderReminders();
   if (page === 'shopping') renderShopping();
   if (page === 'history') renderHistory();
   if (page === 'account') renderAccount();
+}
+
+let upcomingDays = 30;
+
+function setUpcomingRange(range) {
+  ['30','180','Custom'].forEach(r => {
+    const btn = document.getElementById('upcomingBtn' + r);
+    if (btn) { btn.style.borderColor = ''; btn.style.color = ''; }
+  });
+  const customInputs = document.getElementById('upcomingCustomInputs');
+  if (range === 'custom') {
+    customInputs.style.display = 'flex';
+    document.getElementById('upcomingBtnCustom').style.borderColor = 'var(--amber)';
+    document.getElementById('upcomingBtnCustom').style.color = 'var(--amber)';
+    const t = new Date(); 
+    document.getElementById('upcomingFrom').value = t.toISOString().slice(0,10);
+    const t2 = new Date(); t2.setDate(t2.getDate() + 90);
+    document.getElementById('upcomingTo').value = t2.toISOString().slice(0,10);
+  } else {
+    customInputs.style.display = 'none';
+    upcomingDays = range;
+    document.getElementById('upcomingBtn' + range).style.borderColor = 'var(--amber)';
+    document.getElementById('upcomingBtn' + range).style.color = 'var(--amber)';
+    renderUpcoming();
+  }
+}
+
+function renderUpcoming() {
+  const data = load();
+  const today = new Date(); today.setHours(0,0,0,0);
+  let fromDate = new Date(today);
+  let toDate = new Date(today);
+
+  const customInputs = document.getElementById('upcomingCustomInputs');
+  if (customInputs.style.display !== 'none') {
+    fromDate = new Date(document.getElementById('upcomingFrom').value);
+    toDate = new Date(document.getElementById('upcomingTo').value);
+  } else {
+    toDate.setDate(toDate.getDate() + upcomingDays);
+  }
+
+  // Collect all upcoming tasks with projected due dates
+  const tasks = [];
+  data.equipment.forEach(eq => {
+    // nextDue date reminders from maintenance log
+    eq.maintenance.forEach(m => {
+      if (!m.nextDue) return;
+      const d = new Date(m.nextDue);
+      if (!isNaN(d) && d >= fromDate && d <= toDate) {
+        tasks.push({ date: d, equipName: eq.name, task: m.type, source: 'Scheduled', icon: '📅', equipId: eq.id });
+      }
+    });
+
+    // Hour-based intervals — project next due date if we know last service date
+    if (eq.trackHours && eq.serviceIntervals) {
+      const trigger = eq.serviceTrigger || 'both';
+      const calYears = eq.calFallbackYears || 2;
+      eq.serviceIntervals.forEach(si => {
+        const lastDone = eq.maintenance.filter(m => m.type === si.task).sort((a,b) => b.date.localeCompare(a.date))[0];
+        // Calendar projection
+        if (trigger !== 'hours' && lastDone) {
+          const nextCal = new Date(lastDone.date);
+          nextCal.setFullYear(nextCal.getFullYear() + calYears);
+          if (nextCal >= fromDate && nextCal <= toDate) {
+            tasks.push({ date: nextCal, equipName: eq.name, task: si.task, source: `${calYears}yr calendar`, icon: si.icon || '🔧', equipId: eq.id });
+          }
+        }
+      });
+    }
+
+    // Annual checks — project next due from last done
+    const annualChecks = ['Air Filter','Spark Plug','Fuel Filter','Tune-Up','Oil Filter','Blade Sharpen','Grease / Lube'];
+    annualChecks.forEach(checkType => {
+      if (eq.trackHours && eq.serviceIntervals && eq.serviceIntervals.some(si => si.task === checkType)) return;
+      const lastDone = eq.maintenance.filter(m => m.type === checkType).sort((a,b) => b.date.localeCompare(a.date))[0];
+      if (lastDone) {
+        const nextAnnual = new Date(lastDone.date);
+        nextAnnual.setFullYear(nextAnnual.getFullYear() + 1);
+        if (nextAnnual >= fromDate && nextAnnual <= toDate) {
+          tasks.push({ date: nextAnnual, equipName: eq.name, task: checkType, source: 'Annual', icon: '📅', equipId: eq.id });
+        }
+      }
+    });
+  });
+
+  tasks.sort((a,b) => a.date - b.date);
+
+  const el = document.getElementById('upcomingContent');
+  if (!tasks.length) {
+    el.innerHTML = `<div style="text-align:center;padding:48px 24px;color:var(--text-muted)">
+      <div style="font-size:2.5rem;margin-bottom:12px">📆</div>
+      <div>No upcoming tasks in this range.</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = `<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden">
+    <table class="summary-table">
+      <thead><tr><th>Date</th><th>Equipment</th><th>Task</th><th>Source</th></tr></thead>
+      <tbody>${tasks.map(t => {
+        const daysOut = Math.round((t.date - today) / 86400000);
+        const isOverdue = daysOut < 0;
+        const isSoon = daysOut <= 30 && daysOut >= 0;
+        const dateColor = isOverdue ? 'var(--red)' : isSoon ? 'var(--amber)' : 'var(--text)';
+        return `<tr style="cursor:pointer" onclick="selectEquipment('${t.equipId}')">
+          <td style="color:${dateColor};font-weight:600">${fmtDate(t.date.toISOString().slice(0,10))}${isOverdue ? ' ⚠️' : isSoon ? ' 🔔' : ''}</td>
+          <td>${t.equipName}</td>
+          <td>${t.icon} ${t.task}</td>
+          <td style="color:var(--text-muted);font-size:0.8rem">${t.source}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div>`;
 }
 
 function jumpToTodo(equipId) {
@@ -2109,27 +2258,48 @@ function getMaintenanceIssues(data) {
 
     // 1. Per-task hour-based intervals — only for machines with actual hour meters
     if (eq.trackHours && eq.serviceIntervals && eq.serviceIntervals.length) {
+      const trigger = eq.serviceTrigger || 'both';
+      const calYears = eq.calFallbackYears || 2;
       eq.serviceIntervals.forEach(si => {
         const key = eq.id + '|' + si.task;
         const hoursSince = getHoursSinceLastService(eq, si.task);
         const hasEverDone = eq.maintenance.some(m => m.type === si.task);
-        if (hoursSince !== null) {
+        const lastDone = eq.maintenance.filter(m => m.type === si.task).sort((a,b) => b.date.localeCompare(a.date))[0];
+        const daysSinceService = lastDone ? Math.round((today - new Date(lastDone.date)) / 86400000) : null;
+        const calThresholdDays = calYears * 365;
+
+        // Hours-based check
+        let hoursDue = false, hoursSoon = false;
+        if (trigger !== 'calendar' && hoursSince !== null) {
           const pct = hoursSince / si.hours;
-          if (pct >= 1) {
-            issues.push({ equip: eq.name, equipId: eq.id, task: si.task, icon: si.icon || '🔧',
-              detail: `${Math.round(hoursSince)}hrs since last service — interval: every ${si.hours}hrs`,
-              status: 'due' });
-            flagged.add(key);
-          } else if (pct >= 0.8) {
-            issues.push({ equip: eq.name, equipId: eq.id, task: si.task, icon: si.icon || '🔧',
-              detail: `${Math.round(hoursSince)}hrs since last — due at ${si.hours}hrs`,
-              status: 'soon' });
-            flagged.add(key);
+          if (pct >= 1) hoursDue = true;
+          else if (pct >= 0.8) hoursSoon = true;
+        } else if (trigger !== 'calendar' && eq.totalHours > si.hours && !hasEverDone) {
+          hoursDue = true;
+        }
+
+        // Calendar-based check
+        let calDue = false, calSoon = false;
+        if (trigger !== 'hours') {
+          if (daysSinceService !== null) {
+            if (daysSinceService >= calThresholdDays) calDue = true;
+            else if (daysSinceService >= calThresholdDays * 0.85) calSoon = true;
+          } else if (!hasEverDone) {
+            calDue = true;
           }
-        } else if (eq.totalHours > si.hours && !hasEverDone) {
-          issues.push({ equip: eq.name, equipId: eq.id, task: si.task, icon: si.icon || '🔧',
-            detail: `Never logged — ${si.hours}hr interval exceeded (${eq.totalHours}hrs on machine)`,
-            status: 'due' });
+        }
+
+        if (hoursDue || calDue) {
+          const detail = hoursDue
+            ? `${Math.round(hoursSince || 0)}hrs since last service — interval: every ${si.hours}hrs`
+            : `${Math.round(daysSinceService / 365 * 10) / 10} years since last service — ${calYears}yr calendar threshold`;
+          issues.push({ equip: eq.name, equipId: eq.id, task: si.task, icon: si.icon || '🔧', detail, status: 'due' });
+          flagged.add(key);
+        } else if (hoursSoon || calSoon) {
+          const detail = hoursSoon
+            ? `${Math.round(hoursSince)}hrs since last — due at ${si.hours}hrs`
+            : `${Math.round(daysSinceService / 365 * 10) / 10} years since last service — ${calYears}yr threshold approaching`;
+          issues.push({ equip: eq.name, equipId: eq.id, task: si.task, icon: si.icon || '🔧', detail, status: 'soon' });
           flagged.add(key);
         }
       });
@@ -3430,13 +3600,17 @@ function renderDetail() {
     <div class="stat-card"><div class="val">${totalMaint}</div><div class="lbl">Services Logged</div></div>
     <div class="stat-card"><div class="val">$${totalCost.toFixed(2)}</div><div class="lbl">Total Parts Cost</div></div>
     <div class="stat-card"><div class="val">${eq.parts.length}</div><div class="lbl">Parts Logged</div></div>
+    <div class="stat-card" style="cursor:pointer" title="Click to edit" onclick="editAddedDate('${eq.id}')">
+      <div class="val" style="font-size:0.95rem">${eq.addedAt ? fmtDate(eq.addedAt) : '—'}</div>
+      <div class="lbl">Added to Garage ✏️</div>
+    </div>
   `;
 
   // Recent activity (all combined, sorted by date)
   const all = [
-    ...eq.maintenance.map(m=>({date:m.date,type:'maintenance',label:m.type,desc:m.notes,cost:null})),
-    ...eq.parts.map(p=>({date:p.date,type:'parts',label:p.part,desc:p.where,cost:p.cost})),
-    ...eq.hours.map(h=>({date:h.date,type:'hours',label:`${h.hours} hrs`,desc:h.notes,cost:null})),
+    ...eq.maintenance.map(m=>({id:m.id,date:m.date,type:'maintenance',label:m.type,desc:m.notes,cost:null})),
+    ...eq.parts.map(p=>({id:p.id,date:p.date,type:'parts',label:p.part,desc:p.where,cost:p.cost})),
+    ...eq.hours.map(h=>({id:h.id,date:h.date,type:'hours',label:`${h.hours} hrs`,desc:h.notes,cost:null})),
   ].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
 
   const rBody = document.querySelector('#recentActivity tbody');
@@ -3445,7 +3619,8 @@ function renderDetail() {
     <td><span class="badge badge-${a.type}">${a.type}</span></td>
     <td>${a.label}${a.desc?` <span style="color:var(--text-light);font-size:0.8em">— ${a.desc}</span>`:''}</td>
     <td>${a.cost!=null?'$'+parseFloat(a.cost).toFixed(2):'—'}</td>
-  </tr>`).join('') : '<tr><td colspan="4" class="no-logs"><div class="icon">📋</div>No activity yet.</td></tr>';
+    <td><button onclick="deleteActivityEntry('${eq.id}','${a.id}','${a.type}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:4px 8px;border-radius:4px;transition:color 0.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'" title="Delete">✕</button></td>
+  </tr>`).join('') : '<tr><td colspan="5" class="no-logs"><div class="icon">📋</div>No activity yet.</td></tr>';
 
   // Maintenance tab
   const mBody = document.querySelector('#maintenanceTable tbody');
@@ -3828,7 +4003,18 @@ function openEditEquipment(equipId) {
   document.getElementById('editEquipEngine').value = eq.engine || '';
   document.getElementById('editEquipSerial').value = eq.serial || '';
   document.getElementById('editEquipDate').value = eq.purchaseDate || '';
+  document.getElementById('editEquipAddedAt').value = eq.addedAt || '';
   document.getElementById('editEquipNotes').value = eq.notes || '';
+  // Show hour-based settings only for metered machines
+  const hourSettings = document.getElementById('editEquipHourSettings');
+  hourSettings.style.display = eq.trackHours ? 'block' : 'none';
+  document.getElementById('editEquipTrigger').value = eq.serviceTrigger || 'both';
+  document.getElementById('editEquipCalYears').value = eq.calFallbackYears || 2;
+  // Show/hide calendar years field based on trigger selection
+  document.getElementById('editEquipTrigger').onchange = function() {
+    document.getElementById('editEquipCalYearsGroup').style.display = this.value === 'hours' ? 'none' : 'block';
+  };
+  document.getElementById('editEquipCalYearsGroup').style.display = (eq.serviceTrigger === 'hours') ? 'none' : 'block';
   openModal('modalEditEquipment');
 }
 
@@ -3845,7 +4031,12 @@ function saveEditEquipment() {
   eq.engine = document.getElementById('editEquipEngine').value;
   eq.serial = document.getElementById('editEquipSerial').value;
   eq.purchaseDate = document.getElementById('editEquipDate').value;
+  eq.addedAt = document.getElementById('editEquipAddedAt').value || eq.addedAt || '';
   eq.notes = document.getElementById('editEquipNotes').value;
+  if (eq.trackHours) {
+    eq.serviceTrigger = document.getElementById('editEquipTrigger').value;
+    eq.calFallbackYears = parseInt(document.getElementById('editEquipCalYears').value) || 2;
+  }
   save(data);
   closeModal('modalEditEquipment');
   renderAll();
@@ -3875,6 +4066,7 @@ function saveEquipment() {
     engine: document.getElementById('newEquipEngine').value,
     serial: document.getElementById('newEquipSerial').value,
     purchaseDate: document.getElementById('newEquipDate').value,
+    addedAt: new Date().toISOString().slice(0,10),
     oilInterval: parseInt(document.getElementById('newEquipOilInterval').value)||50,
     notes: specs.notes || '',
     serviceIntervals: specs.serviceIntervals || [],
@@ -3896,6 +4088,33 @@ function saveEquipment() {
   document.getElementById('newEquipOilInterval').value='50';
   document.getElementById('aiScanStatus').style.display='none';
   selectEquipment(eq.id);
+}
+
+function deleteActivityEntry(equipId, entryId, type) {
+  if (!confirm('Delete this entry?')) return;
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return;
+  if (type === 'maintenance') eq.maintenance = eq.maintenance.filter(m => m.id !== entryId);
+  else if (type === 'parts') eq.parts = eq.parts.filter(p => p.id !== entryId);
+  else if (type === 'hours') eq.hours = eq.hours.filter(h => h.id !== entryId);
+  save(data);
+  renderAll();
+  renderDetail();
+  if (currentPage === 'history') renderHistory();
+}
+
+function editAddedDate(equipId) {
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) return;
+  const current = eq.addedAt || new Date().toISOString().slice(0,10);
+  const newDate = prompt('Added to Garage date (YYYY-MM-DD):', current);
+  if (!newDate) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) { alert('Please use YYYY-MM-DD format.'); return; }
+  eq.addedAt = newDate;
+  save(data);
+  renderDetail();
 }
 
 function deleteMaintenance(equipId, maintId) {
@@ -4508,6 +4727,7 @@ function renderHistory() {
           ${ev.notes ? `<div style="font-size:0.8rem;color:var(--text-light);margin-top:3px">${ev.notes}</div>` : ''}
           ${ev.photo ? `<img src="${ev.photo}" onclick="event.stopPropagation();this.style.maxHeight=this.style.maxHeight?'':'400px'" style="max-height:60px;max-width:160px;border-radius:6px;cursor:pointer;margin-top:8px;border:1px solid var(--border);transition:max-height 0.3s" title="Click to expand">` : ''}
         </div>
+        <button onclick="event.stopPropagation();deleteActivityEntry('${ev.equipId}','${ev.id}','${ev.kind === 'part' ? 'parts' : ev.kind}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:4px 8px;border-radius:4px;flex-shrink:0;transition:color 0.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'" title="Delete">✕</button>
       </div>`;
     });
     html += '</div>';
