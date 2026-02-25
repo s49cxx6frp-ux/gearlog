@@ -990,12 +990,24 @@
       <button class="modal-close" onclick="closeModal('modalAddEquipment')">✕</button>
     </div>
     <div class="modal-body">
-      <!-- AI Photo Scan -->
-      <div id="aiScanSection" style="background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:18px;text-align:center">
-        <div style="font-size:0.8rem;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">📷 Identify with Photo</div>
+      <!-- AI Identify Section -->
+      <div id="aiScanSection" style="background:var(--surface2);border:1.5px dashed var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:18px">
+        <div style="font-size:0.8rem;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center">🤖 AI Identify Equipment</div>
+        <!-- Search by name -->
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="text" id="equipSearchInput" placeholder="e.g. Stihl MS 271, Honda HRX217" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-size:0.85rem" onkeydown="if(event.key==='Enter')searchEquipmentText()">
+          <button class="btn btn-secondary" style="font-size:0.85rem;white-space:nowrap" onclick="searchEquipmentText()">🔍 Search</button>
+        </div>
+        <!-- Divider -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+          <span style="font-size:0.75rem;color:var(--text-muted)">or</span>
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+        </div>
+        <!-- Photo upload -->
         <input type="file" id="equipPhotoInput" accept="image/*" style="display:none" onchange="scanEquipmentPhoto(this)">
-        <button class="btn btn-secondary" style="width:100%;font-size:0.85rem" onclick="document.getElementById('equipPhotoInput').click()">📸 Take / Upload Photo</button>
-        <div id="aiScanStatus" style="margin-top:10px;font-size:0.82rem;color:var(--text-muted);display:none"></div>
+        <button class="btn btn-secondary" style="width:100%;font-size:0.85rem;text-align:center" onclick="document.getElementById('equipPhotoInput').click()">📸 Take / Upload Photo</button>
+        <div id="aiScanStatus" style="margin-top:10px;font-size:0.82rem;color:var(--text-muted);display:none;text-align:center"></div>
       </div>
       <div class="form-group">
         <label>Equipment Name</label>
@@ -3516,6 +3528,96 @@ function openModal(id) { document.getElementById(id).classList.add('visible'); }
 function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
 
 function openAddEquipment() { openModal('modalAddEquipment'); }
+
+async function searchEquipmentText() {
+  const query = document.getElementById('equipSearchInput').value.trim();
+  if (!query) return;
+
+  const status = document.getElementById('aiScanStatus');
+  status.style.display = 'block';
+
+  if (!currentUser) {
+    status.style.color = '#e74c3c';
+    status.textContent = '⚠ Please sign in to use AI search.';
+    return;
+  }
+
+  status.style.color = 'var(--amber)';
+  status.textContent = '🔍 Looking up equipment...';
+
+  try {
+    const session = await sb.auth.getSession();
+    const token = session.data.session?.access_token;
+    if (!token) throw new Error('Not signed in');
+
+    const response = await fetch('https://zavnxlwqjiaudnetandu.supabase.co/functions/v1/claude-identify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ searchQuery: query })
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `API error ${response.status}`);
+
+    const result = {
+      name: [data.brand, data.model].filter(Boolean).join(' ') || data.type || query,
+      type: data.type || '',
+      engine: data.engine || '',
+      year: '',
+      serial: '',
+      oilInterval: data.serviceIntervals?.oilChange ? 50 : 999,
+      notes: data.notes || ''
+    };
+
+    if (result.name) document.getElementById('newEquipName').value = result.name;
+    if (result.engine) document.getElementById('newEquipEngine').value = result.engine;
+    if (result.year) document.getElementById('newEquipYear').value = result.year;
+    if (result.serial) document.getElementById('newEquipSerial').value = result.serial;
+    if (result.oilInterval) document.getElementById('newEquipOilInterval').value = result.oilInterval;
+
+    if (result.type) {
+      const sel = document.getElementById('newEquipType');
+      for (let opt of sel.options) {
+        if (opt.value.includes(result.type.replace(/.*? /, '')) || result.type.includes(opt.value.replace(/.*? /, ''))) {
+          sel.value = opt.value;
+          break;
+        }
+      }
+    }
+
+    const specs = {
+      notes: data.notes || '',
+      serviceIntervals: Object.entries(data.serviceIntervals || {})
+        .filter(([, v]) => v)
+        .map(([k, v]) => ({
+          task: k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()),
+          hours: 999,
+          icon: k === 'oilChange' ? '🛢' : k === 'airFilter' ? '💨' : k === 'sparkPlug' ? '🔩' : '🔧',
+          note: v
+        })),
+      parts: Object.entries(data.oemParts || {})
+        .filter(([, v]) => v)
+        .map(([k, v]) => ({
+          part: k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()),
+          where: 'See OEM dealer / Amazon',
+          notes: `OEM: ${v}`
+        }))
+    };
+
+    window._pendingEquipSpecs = specs;
+
+    status.style.color = 'var(--green)';
+    status.innerHTML = `✅ Found: <strong>${result.name}</strong>${result.notes ? '<br><span style="color:var(--text-muted);font-size:0.78rem">' + result.notes + '</span>' : ''}<br><span style="color:var(--text-muted);font-size:0.75rem">${specs.parts?.length||0} parts + ${specs.serviceIntervals?.length||0} service intervals ready. Review fields below then save.</span>`;
+
+  } catch (err) {
+    console.error('AI search error:', err);
+    status.style.color = '#e74c3c';
+    status.textContent = `⚠ ${err.message || 'Could not find equipment'} — please fill in manually.`;
+  }
+}
 
 async function scanEquipmentPhoto(input) {
   if (!input.files || !input.files[0]) return;
