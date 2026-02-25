@@ -760,8 +760,15 @@
 
 <main>
 
-  <!-- ===== GARAGE PAGE ===== -->
+  <!-- ===== GARAGE PAGE ===== -->\
   <div class="page-view active" id="page-garage">
+    <!-- Status Filter -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button id="filterAll" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px;border-color:var(--amber);color:var(--amber)" onclick="setGarageFilter('all')">All</button>
+      <button id="filterGood" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setGarageFilter('good')">✓ Good to Go!</button>
+      <button id="filterSoon" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setGarageFilter('soon')">🔔 Service Soon</button>
+      <button id="filterDue" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setGarageFilter('due')">⚠️ Service Needed</button>
+    </div>
     <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:24px">
       <div class="garage-table-wrap">
       <table class="summary-table" id="equipmentGrid">
@@ -1269,6 +1276,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentPlan = 'free'; // 'free' or 'paid'
+let garageFilter = 'all'; // 'all' | 'good' | 'soon' | 'due'
 
 async function initAuth() {
   try {
@@ -1925,6 +1933,18 @@ function getIcon(type) {
   return type ? type.split(' ')[0] : '🔧';
 }
 
+function setGarageFilter(filter) {
+  garageFilter = filter;
+  // Update button styles
+  ['all','good','soon','due'].forEach(f => {
+    const btn = document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1));
+    if (!btn) return;
+    btn.style.borderColor = f === filter ? 'var(--amber)' : '';
+    btn.style.color = f === filter ? 'var(--amber)' : '';
+  });
+  renderEquipmentGrid(load());
+}
+
 function renderEquipmentGrid(data) {
   const tbody = document.getElementById('equipmentGridBody');
   if (!data.equipment.length) {
@@ -1951,11 +1971,13 @@ function renderEquipmentGrid(data) {
     const equipIssues = allIssues.filter(i => i.equipId === eq.id);
     const hasDue = equipIssues.some(i => i.status === 'due');
     const hasSoon = equipIssues.some(i => i.status === 'soon');
+    const eqStatus = hasDue ? 'due' : hasSoon ? 'soon' : 'good';
+    if (garageFilter !== 'all' && eqStatus !== garageFilter) return '';
     const serviceFlag = hasDue
       ? `<span class="service-flag flag-due" style="cursor:pointer" onclick="event.stopPropagation();jumpToTodo('${eq.id}')">⚠️ Service Needed</span>`
       : hasSoon
       ? `<span class="service-flag flag-soon" style="cursor:pointer" onclick="event.stopPropagation();jumpToTodo('${eq.id}')">🔔 Service Soon</span>`
-      : `<span style="font-size:0.75rem;color:var(--green-light)">✓ Good</span>`;
+      : `<span class="service-flag" style="background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.3)">✓ Good to Go!</span>`;
 
     const maintSorted = [...eq.maintenance].sort((a,b) => b.date.localeCompare(a.date));
     const lastMaint = maintSorted[0];
