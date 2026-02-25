@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Shively's GearLog</title>
+<title>GearLog</title>
 
 <!-- PWA Manifest (inline via data URI so this stays a single deployable HTML file) -->
 <link rel="manifest" href="#">
@@ -170,9 +170,13 @@
     border-collapse: collapse;
     font-size: 0.95rem;
   }
+  .garage-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .summary-table th, .garage-table th, .log-table th {
     text-align: left;
-    padding: 11px 16px;
+    padding: 11px 12px;
     font-family: var(--font-head);
     font-size: 0.85rem;
     font-weight: 700;
@@ -184,11 +188,11 @@
     white-space: nowrap;
   }
   .summary-table td, .garage-table td, .log-table td {
-    padding: 13px 16px;
+    padding: 11px 12px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
     color: var(--text);
-    font-size: 0.95rem;
+    font-size: 0.88rem;
   }
   .summary-table tr:last-child td,
   .garage-table tr:last-child td,
@@ -203,6 +207,11 @@
   .garage-table tr.active td {
     background: rgba(245,130,31,0.06);
     border-left: 3px solid var(--orange);
+  }
+  @media (max-width: 600px) {
+    .summary-table th, .summary-table td { padding: 9px 8px; font-size: 0.8rem; }
+    .summary-table th:nth-child(3), .summary-table td:nth-child(3),
+    .summary-table th:nth-child(4), .summary-table td:nth-child(4) { display: none; }
   }
 
   .equip-icon {
@@ -713,6 +722,14 @@
         <input id="authPassword" type="password" placeholder="••••••••" style="width:100%;background:#111;border:1.5px solid #333;border-radius:4px;padding:10px 12px;color:#f0f0f0;font-size:0.9rem;box-sizing:border-box">
       </div>
       <button onclick="signIn()" style="width:100%;background:#F5821F;border:none;border-radius:4px;padding:12px;color:#fff;-webkit-text-fill-color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:10px">Sign In</button>
+      <div id="tcCheckboxWrap" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;padding:10px;background:#111;border:1.5px solid #2a2a2a;border-radius:4px">
+        <input type="checkbox" id="tcAgree" style="margin-top:2px;accent-color:#F5821F;cursor:pointer;flex-shrink:0">
+        <label for="tcAgree" style="font-size:0.75rem;color:#888;line-height:1.4;cursor:pointer">I am 18 or older and I agree to GearLog's <a onclick="showLegalModal('tc')" style="color:#F5821F;cursor:pointer;text-decoration:underline">Terms &amp; Conditions</a> and <a onclick="showLegalModal('pp')" style="color:#F5821F;cursor:pointer;text-decoration:underline">Privacy Policy</a>.</label>
+      </div>
+      <div id="signupNameWrap" style="display:none;margin-bottom:10px">
+        <label style="display:block;font-size:0.75rem;font-family:'DM Mono',monospace;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Your Name <span style="color:#555;font-size:0.7rem">(optional)</span></label>
+        <input id="signupName" type="text" placeholder="e.g. Alex" style="width:100%;background:#111;border:1.5px solid #333;border-radius:4px;padding:10px 12px;color:#f0f0f0;font-size:0.9rem;box-sizing:border-box">
+      </div>
       <button onclick="signUp()" style="width:100%;background:transparent;border:1.5px solid #444;border-radius:4px;padding:12px;color:#aaa;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Create Account</button>
       <div id="authStatus" style="margin-top:12px;font-size:0.8rem;color:#F5821F;text-align:center;min-height:20px"></div>
     </div>
@@ -724,7 +741,7 @@
 
 <header>
   <div class="brand">
-    <h1>⛽ Shively's GearLog</h1>
+    <h1 id="appHeaderTitle">⛽ GearLog</h1>
     <p>Gas-Powered Lawn Equipment Tracker</p>
   </div>
   <div style="display:flex;gap:10px;align-items:center">
@@ -746,6 +763,7 @@
   <!-- ===== GARAGE PAGE ===== -->
   <div class="page-view active" id="page-garage">
     <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:24px">
+      <div class="garage-table-wrap">
       <table class="summary-table" id="equipmentGrid">
         <thead><tr>
           <th>Equipment</th>
@@ -756,6 +774,7 @@
         </tr></thead>
         <tbody id="equipmentGridBody"></tbody>
       </table>
+      </div>
     </div>
 
     <!-- Detail Panel -->
@@ -780,7 +799,7 @@
         <div class="tab active" onclick="switchTab('overview')">Overview</div>
         <div class="tab" onclick="switchTab('maintenance')">Maintenance</div>
         <div class="tab" onclick="switchTab('hours')">Runtime Hours</div>
-        <div class="tab" onclick="switchTab('parts')">Parts & Costs</div>
+        <div class="tab" onclick="switchTab('parts')">Parts List</div>
         <div class="tab" onclick="switchTab('qr')">📱 QR Label</div>
       </div>
 
@@ -907,6 +926,14 @@
           <div style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted)">Account</div>
         </div>
         <div style="padding:20px">
+          <div style="margin-bottom:16px">
+            <div style="font-size:0.75rem;font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Display Name</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="text" id="accountDisplayName" placeholder="Your name (optional)" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:4px;padding:8px 12px;color:var(--text);font-size:0.9rem;box-sizing:border-box">
+              <button onclick="saveDisplayName()" style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-radius:4px;background:var(--surface2);border:1.5px solid var(--border);color:var(--text-muted);cursor:pointer;white-space:nowrap">Save</button>
+            </div>
+            <div id="displayNameStatus" style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;min-height:16px"></div>
+          </div>
           <div style="margin-bottom:16px">
             <div style="font-size:0.75rem;font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Email</div>
             <div id="accountEmail" style="font-size:0.95rem;color:var(--text);font-weight:500">—</div>
@@ -1267,15 +1294,44 @@ function showApp() {
   initApp();
 }
 
+let _signupStep = 0; // 0 = first click shows name field, 1 = ready to submit
+
 async function signUp() {
+  const status = document.getElementById('authStatus');
+  const agreed = document.getElementById('tcAgree') && document.getElementById('tcAgree').checked;
+  const nameWrap = document.getElementById('signupNameWrap');
+
+  // First click: show name field if not visible
+  if (nameWrap && nameWrap.style.display === 'none') {
+    if (!agreed) {
+      status.textContent = 'Please agree to the Terms & Conditions and Privacy Policy to create an account.';
+      document.getElementById('tcCheckboxWrap').style.border = '1.5px solid #F5821F';
+      return;
+    }
+    nameWrap.style.display = 'block';
+    document.getElementById('tcCheckboxWrap').style.border = '1.5px solid #2a2a2a';
+    status.textContent = '';
+    return;
+  }
+
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
-  const status = document.getElementById('authStatus');
+  const displayName = document.getElementById('signupName') ? document.getElementById('signupName').value.trim() : '';
   if (!email || !password) { status.textContent = 'Please enter email and password.'; return; }
+  if (!agreed) {
+    status.textContent = 'Please agree to the Terms & Conditions and Privacy Policy.';
+    document.getElementById('tcCheckboxWrap').style.border = '1.5px solid #F5821F';
+    return;
+  }
+  document.getElementById('tcCheckboxWrap').style.border = '1.5px solid #2a2a2a';
   status.textContent = 'Creating account...';
-  const { error } = await sb.auth.signUp({ email, password });
-  if (error) { status.textContent = error.message; }
-  else { status.textContent = 'Check your email to confirm your account!'; }
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if (error) { status.textContent = error.message; return; }
+  // Save display name to profiles if provided
+  if (displayName && data.user) {
+    await sb.from('profiles').upsert({ id: data.user.id, display_name: displayName }, { onConflict: 'id' });
+  }
+  status.textContent = 'Account created! Check your email to confirm.';
 }
 
 async function signIn() {
@@ -1300,14 +1356,26 @@ async function signOut() {
 }
 
 // ---------- Plan ----------
+let currentDisplayName = '';
+
 async function loadUserPlan() {
   if (!currentUser) { currentPlan = 'free'; return; }
   try {
-    const { data, error } = await sb.from('profiles').select('plan').eq('id', currentUser.id).single();
+    const { data, error } = await sb.from('profiles').select('plan, display_name').eq('id', currentUser.id).single();
     currentPlan = (data && !error) ? (data.plan || 'free') : 'free';
+    currentDisplayName = (data && !error && data.display_name) ? data.display_name : '';
   } catch(e) {
     currentPlan = 'free';
+    currentDisplayName = '';
   }
+  updateHeaderTitle();
+}
+
+function updateHeaderTitle() {
+  const el = document.getElementById('appHeaderTitle');
+  if (!el) return;
+  const name = currentDisplayName || (currentUser?.email ? currentUser.email.split('@')[0] : '');
+  el.textContent = name ? `⛽ ${name}'s GearLog` : '⛽ GearLog';
 }
 
 // ---------- Data ----------
@@ -1872,9 +1940,9 @@ function renderEquipmentGrid(data) {
     const hasDue = equipIssues.some(i => i.status === 'due');
     const hasSoon = equipIssues.some(i => i.status === 'soon');
     const serviceFlag = hasDue
-      ? `<span class="service-flag flag-due">⚠️ Service Needed</span>`
+      ? `<span class="service-flag flag-due" style="cursor:pointer" onclick="event.stopPropagation();jumpToTodo('${eq.id}')">⚠️ Service Needed</span>`
       : hasSoon
-      ? `<span class="service-flag flag-soon">🔔 Service Soon</span>`
+      ? `<span class="service-flag flag-soon" style="cursor:pointer" onclick="event.stopPropagation();jumpToTodo('${eq.id}')">🔔 Service Soon</span>`
       : `<span style="font-size:0.75rem;color:var(--green-light)">✓ Good</span>`;
 
     const maintSorted = [...eq.maintenance].sort((a,b) => b.date.localeCompare(a.date));
@@ -1927,10 +1995,26 @@ function switchPage(page) {
   document.querySelectorAll('.top-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   document.getElementById('nav-' + page).classList.add('active');
+  if (page === 'garage') renderEquipmentGrid(load());
   if (page === 'reminders') renderReminders();
   if (page === 'shopping') renderShopping();
   if (page === 'history') renderHistory();
   if (page === 'account') renderAccount();
+}
+
+function jumpToTodo(equipId) {
+  switchPage('reminders');
+  // Expand just this equipment's group
+  const data = load();
+  const issues = getMaintenanceIssues(data).filter(i => i.equipId === equipId);
+  if (!issues.length) return;
+  // After render, scroll to and expand the group
+  setTimeout(() => {
+    const el = document.getElementById('todo-group-' + equipId);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    todoGroupExpanded[equipId] = true;
+    renderTodo();
+  }, 50);
 }
 
 function renderAlerts(data) {
@@ -2061,7 +2145,7 @@ function getMaintenanceIssues(data) {
         if (diffDays < 0) {
           issues.push({ equip: eq.name, equipId: eq.id, task: m.type, icon: '🔧',
             detail: `Was due ${Math.abs(diffDays)} days ago (${fmtDate(m.nextDue)})`, status: 'due' });
-        } else if (diffDays <= 14) {
+        } else if (diffDays <= 30) {
           issues.push({ equip: eq.name, equipId: eq.id, task: m.type, icon: '🔧',
             detail: `Due in ${diffDays} day${diffDays === 1 ? '' : 's'} (${fmtDate(m.nextDue)})`, status: 'soon' });
         }
@@ -3359,7 +3443,7 @@ function renderDetail() {
   if (!pContainer) return;
 
   if (!eq.parts.length) {
-    pContainer.innerHTML = '<div class="no-logs"><div class="icon">🔩</div>No parts logged yet.</div>';
+    pContainer.innerHTML = '<div class="no-logs"><div class="icon">🔩</div>No parts listed yet.</div>';
     return;
   }
 
@@ -3367,7 +3451,9 @@ function renderDetail() {
   const refParts = eq.parts.filter(p => (parseFloat(p.cost)||0) === 0);
   const purchasedParts = eq.parts.filter(p => (parseFloat(p.cost)||0) > 0);
 
-  let pHtml = '';
+  let pHtml = `<div style="font-size:0.78rem;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:16px;line-height:1.5">
+    📋 <strong style="color:var(--text)">Parts List</strong> — OEM part numbers and specs for this equipment. To log a purchase, use the <strong style="color:var(--text)">+ Parts</strong> button in the Garage.
+  </div>`;
 
   // OEM Reference section
   if (refParts.length) {
@@ -3894,7 +3980,7 @@ function installPWA() {
 // ---------- Inline Manifest ----------
 (function() {
   const manifest = {
-    name: "Shively's GearLog",
+    name: "GearLog",
     short_name: "GearLog",
     description: "Gas-Powered Lawn Equipment Tracker",
     start_url: "./",
@@ -4311,6 +4397,10 @@ function renderAccount() {
   const els = document.querySelectorAll('#accountEmail, #accountEmailInline');
   els.forEach(el => { if (el) el.textContent = email; });
 
+  // Populate display name field
+  const nameInput = document.getElementById('accountDisplayName');
+  if (nameInput) nameInput.value = currentDisplayName || '';
+
   const badge = document.getElementById('accountPlanBadge');
   const upgradeBtn = document.getElementById('accountUpgradeBtn');
   if (currentPlan === 'paid') {
@@ -4334,6 +4424,26 @@ function renderAccount() {
   });
   const status = document.getElementById('passwordStatus');
   if (status) status.textContent = '';
+}
+
+async function saveDisplayName() {
+  const input = document.getElementById('accountDisplayName');
+  const statusEl = document.getElementById('displayNameStatus');
+  const name = input ? input.value.trim() : '';
+  if (!currentUser) return;
+  statusEl.textContent = 'Saving...';
+  statusEl.style.color = 'var(--text-muted)';
+  const { error } = await sb.from('profiles').upsert({ id: currentUser.id, display_name: name }, { onConflict: 'id' });
+  if (error) {
+    statusEl.textContent = 'Error saving name.';
+    statusEl.style.color = 'var(--red)';
+  } else {
+    currentDisplayName = name;
+    updateHeaderTitle();
+    statusEl.textContent = '✓ Saved!';
+    statusEl.style.color = 'var(--green)';
+    setTimeout(() => { statusEl.textContent = ''; }, 2500);
+  }
 }
 
 async function changePassword() {
@@ -4478,6 +4588,48 @@ async function startCheckout() {
 </div>
 
 </div><!-- end appScreen -->
+
+<!-- Legal Modal -->
+<div id="legalModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto">
+  <div style="background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:10px;max-width:640px;width:100%;margin:auto;padding:32px;position:relative">
+    <button onclick="closeLegalModal()" style="position:absolute;top:16px;right:16px;background:transparent;border:1px solid #333;border-radius:4px;color:#888;font-size:1rem;cursor:pointer;padding:4px 10px">&#x2715;</button>
+    <div id="legalModalTitle" style="font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:800;color:#F5821F;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px"></div>
+    <div id="legalModalContent" style="font-size:0.82rem;color:#aaa;line-height:1.7;white-space:pre-wrap"></div>
+    <div style="margin-top:28px;text-align:center">
+      <button onclick="closeLegalModal()" style="background:#F5821F;border:none;border-radius:6px;padding:12px 36px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Got It</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LEGAL_CONTENT = {
+  tc: {
+    title: 'Terms & Conditions',
+    body: `Effective Date: February 24, 2026 | Last Updated: February 24, 2026\n\nThese Terms and Conditions govern your access to and use of GearLog, operated by GearLog LLC. By creating an account, you agree to be bound by these Terms.\n\n1. ELIGIBILITY\nYou must be at least 18 years of age to use GearLog.\n\n2. ACCOUNT REGISTRATION\nYou are responsible for maintaining the confidentiality of your account credentials and all activities that occur under your account.\n\n3. SUBSCRIPTIONS & BILLING\nPaid subscriptions are billed monthly or annually via Stripe. Subscriptions auto-renew unless cancelled prior to the renewal date.\n\n4. CANCELLATION & DATA RETENTION\nYour data is retained for 90 days after account closure, then permanently deleted.\n\n5. ACCEPTABLE USE\nYou agree to use GearLog only for lawful purposes. You may not attempt to gain unauthorized access, reverse engineer, or impair the Service.\n\n6. YOUR CONTENT\nYou retain ownership of your data. You grant GearLog a limited license to store and process it solely to provide the Service.\n\n7. AGGREGATED DATA\nWe may use de-identified, aggregated data for research and commercial insights. This data will never identify you personally.\n\n8. DISCLAIMER OF WARRANTIES\nTHE SERVICE IS PROVIDED "AS IS." MAINTENANCE RECOMMENDATIONS ARE FOR INFORMATIONAL PURPOSES ONLY AND DO NOT CONSTITUTE PROFESSIONAL MECHANICAL ADVICE.\n\n9. LIMITATION OF LIABILITY\nTO THE FULLEST EXTENT PERMITTED BY LAW, GEARLOG SHALL NOT BE LIABLE FOR ANY INDIRECT OR CONSEQUENTIAL DAMAGES.\n\n10. GOVERNING LAW\nThese Terms are governed by the laws of the State of Maryland.\n\n11. CONTACT\nsupport@gearlog.app`
+  },
+  pp: {
+    title: 'Privacy Policy',
+    body: `Effective Date: February 24, 2026 | Last Updated: February 24, 2026\n\n1. INFORMATION WE COLLECT\n- Email address and hashed password\n- Equipment data, maintenance logs, and photos\n- Payment info processed by Stripe (we do not store card numbers)\n\n2. HOW WE USE YOUR INFORMATION\nTo provide the Service, process payments, send service communications, and power AI identification via Anthropic.\n\n3. DATA STORAGE & SECURITY\nData is stored in Supabase with row-level security, encrypted at rest and in transit. We do not sell your personal data.\n\n4. THIRD-PARTY SERVICES\nSupabase (database), Stripe (payments), Anthropic (AI), Resend (email).\n\n5. AGGREGATED DATA\nDe-identified aggregated data may be used for product research and commercial insights. It will never identify you personally.\n\n6. DATA RETENTION\nData is retained for 90 days after account closure, then permanently deleted.\n\n7. YOUR RIGHTS\nYou may request access, correction, or deletion of your data by contacting us.\n\n8. CHILDREN'S PRIVACY\nGearLog is not intended for users under 18.\n\n9. CONTACT\nsupport@gearlog.app`
+  }
+};
+
+function showLegalModal(type) {
+  const content = LEGAL_CONTENT[type];
+  if (!content) return;
+  document.getElementById('legalModalTitle').textContent = content.title;
+  document.getElementById('legalModalContent').textContent = content.body;
+  document.getElementById('legalModal').style.display = 'flex';
+}
+
+function closeLegalModal() {
+  document.getElementById('legalModal').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const m = document.getElementById('legalModal');
+  if (m) m.addEventListener('click', function(e) { if (e.target === this) closeLegalModal(); });
+});
+</script>
 
 </body>
 </html>
