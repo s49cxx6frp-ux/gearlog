@@ -838,6 +838,7 @@
           <div style="font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:var(--amber); margin-bottom:6px;">📋 Part Numbers &amp; Notes</div>
           <span id="equipNotesText"></span>
         </div>
+        <div id="serviceScheduleSection" style="display:none;margin-bottom:20px"></div>
         <div class="section-label">Recent Activity</div>
         <table class="log-table" id="recentActivity">
           <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Cost</th></tr></thead>
@@ -1081,7 +1082,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalAddEquipment')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEquipment()">Add Equipment</button>
+      <button class="btn btn-primary" onclick="saveEquipment()">Add to Garage</button>
     </div>
   </div>
 </div>
@@ -3682,6 +3683,46 @@ function renderDetail() {
     </div>
   `;
 
+  // Service schedule section
+  const schedSection = document.getElementById('serviceScheduleSection');
+  if (eq.serviceIntervals && eq.serviceIntervals.length) {
+    const alertItems = eq.serviceIntervals.filter(si => si.surfaceAsAlert !== false && !si.dealerOnly);
+    const refItems = eq.serviceIntervals.filter(si => si.surfaceAsAlert === false && !si.dealerOnly);
+    const freqLabel = f => ({
+      before_use:'Before Use', daily:'Daily', weekly:'Weekly', monthly:'Monthly',
+      annual:'Annual', '25hrs':'Every 25 hrs', '50hrs':'Every 50 hrs',
+      '100hrs':'Every 100 hrs', '200hrs':'Every 200 hrs', '250hrs':'Every 250 hrs',
+      as_needed:'As Needed', if_damaged:'If Damaged'
+    }[f] || f);
+
+    const renderRows = items => items.map(si => `
+      <tr>
+        <td style="width:28px;text-align:center">${si.icon || '🔧'}</td>
+        <td style="font-weight:500">${si.task}${si.action ? ` <span style="color:var(--text-muted);font-weight:400">— ${si.action}</span>` : ''}</td>
+        <td style="color:var(--text-muted);font-size:0.82rem">${freqLabel(si.frequency)}</td>
+        <td style="color:var(--text-muted);font-size:0.78rem">${si.notes || ''}</td>
+      </tr>`).join('');
+
+    schedSection.style.display = '';
+    schedSection.innerHTML = `
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted)">🔧 Service Schedule</span>
+          <span style="font-size:0.75rem;color:var(--text-muted)">${eq.serviceIntervals.length} intervals · ${eq.scheduleConfidence === 'high' ? '<span style="color:var(--green)">✅ From manual</span>' : '<span style="color:var(--amber)">⚠️ AI estimate</span>'}</span>
+        </div>
+        ${alertItems.length ? `<table style="width:100%;border-collapse:collapse">${renderRows(alertItems)}</table>` : ''}
+        ${refItems.length ? `
+          <div style="padding:8px 16px;background:var(--bg);border-top:1px solid var(--border)">
+            <details>
+              <summary style="font-size:0.75rem;color:var(--text-muted);cursor:pointer">Reference items (${refItems.length}) — visual checks, as-needed tasks</summary>
+              <table style="width:100%;border-collapse:collapse;margin-top:8px">${renderRows(refItems)}</table>
+            </details>
+          </div>` : ''}
+      </div>`;
+  } else {
+    schedSection.style.display = 'none';
+  }
+
   // Recent activity (all combined, sorted by date)
   const all = [
     ...eq.maintenance.map(m=>({id:m.id,date:m.date,type:'maintenance',label:m.type,desc:m.notes,cost:null})),
@@ -4380,6 +4421,12 @@ function savePart() {
   renderAll();
 }
 
+function openManual() {
+  const data = load();
+  const eq = data.equipment.find(e => e.id === currentEquipId);
+  if (eq && eq.manualUrl) window.open(eq.manualUrl, '_blank');
+}
+
 async function handleManualUpload(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
@@ -4754,7 +4801,18 @@ function printQrLabel() {
     .name { font-weight: 700; font-size: 1.05rem; margin: 10px 0 2px; }
     .sub { font-size: 0.78rem; color: #666; font-family: monospace; }
     .brand { font-size: 0.7rem; color: #e05c00; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 10px; }
-  </style></head><body>
+    #serviceScheduleSection table tr td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  #serviceScheduleSection table tr:last-child td {
+    border-bottom: none;
+  }
+  #serviceScheduleSection table tr:hover td {
+    background: var(--surface-hover, rgba(255,255,255,0.03));
+  }
+</style></head><body>
   <div class="label">
     <div class="brand">GearLog</div>
     <img src="${imgSrc}">
