@@ -3688,34 +3688,52 @@ function renderDetail() {
   if (eq.serviceIntervals && eq.serviceIntervals.length) {
     const alertItems = eq.serviceIntervals.filter(si => si.surfaceAsAlert !== false && !si.dealerOnly);
     const refItems = eq.serviceIntervals.filter(si => si.surfaceAsAlert === false && !si.dealerOnly);
+    const freqOrder = ['before_use','daily','weekly','monthly','annual','25hrs','50hrs','100hrs','200hrs','250hrs','as_needed','if_damaged','dealer_only'];
     const freqLabel = f => ({
       before_use:'Before Use', daily:'Daily', weekly:'Weekly', monthly:'Monthly',
       annual:'Annual', '25hrs':'Every 25 hrs', '50hrs':'Every 50 hrs',
       '100hrs':'Every 100 hrs', '200hrs':'Every 200 hrs', '250hrs':'Every 250 hrs',
-      as_needed:'As Needed', if_damaged:'If Damaged'
+      as_needed:'As Needed', if_damaged:'If Damaged', dealer_only:'Dealer Only'
     }[f] || f);
 
-    const renderRows = items => items.map(si => `
+    const sortByFreq = items => [...items].sort((a,b) => {
+      const ai = freqOrder.indexOf(a.frequency);
+      const bi = freqOrder.indexOf(b.frequency);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
+
+    const tableHeader = `<thead><tr>
+      <th style="width:28px"></th>
+      <th style="text-align:left;padding:8px 12px;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border)">Task</th>
+      <th style="text-align:left;padding:8px 12px;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border)">Frequency</th>
+      <th style="text-align:left;padding:8px 12px;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border)">Notes</th>
+    </tr></thead>`;
+
+    const renderRows = items => sortByFreq(items).map(si => `
       <tr>
-        <td style="width:28px;text-align:center">${si.icon || '🔧'}</td>
-        <td style="font-weight:500">${si.task}${si.action ? ` <span style="color:var(--text-muted);font-weight:400">— ${si.action}</span>` : ''}</td>
-        <td style="color:var(--text-muted);font-size:0.82rem">${freqLabel(si.frequency)}</td>
-        <td style="color:var(--text-muted);font-size:0.78rem">${si.notes || ''}</td>
+        <td style="width:28px;text-align:center;padding:8px 4px">${si.icon || '🔧'}</td>
+        <td style="font-weight:500;padding:8px 12px">${si.task}${si.action ? ` <span style="color:var(--text-muted);font-weight:400">— ${si.action}</span>` : ''}</td>
+        <td style="color:var(--text-muted);font-size:0.82rem;white-space:nowrap;padding:8px 12px">${freqLabel(si.frequency)}</td>
+        <td style="color:var(--text-muted);font-size:0.78rem;padding:8px 12px">${si.notes || ''}</td>
       </tr>`).join('');
+
+    const confBadge = eq.scheduleConfidence === 'high'
+      ? '<span style="color:var(--green)">✅ From uploaded manual</span>'
+      : '<span style="color:var(--amber)">⚠️ AI training data estimate</span>';
 
     schedSection.style.display = '';
     schedSection.innerHTML = `
       <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden">
         <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted)">🔧 Service Schedule</span>
-          <span style="font-size:0.75rem;color:var(--text-muted)">${eq.serviceIntervals.length} intervals · ${eq.scheduleConfidence === 'high' ? '<span style="color:var(--green)">✅ From manual</span>' : '<span style="color:var(--amber)">⚠️ AI estimate</span>'}</span>
+          <span style="font-size:0.75rem;color:var(--text-muted)">${eq.serviceIntervals.length} intervals · ${confBadge}</span>
         </div>
-        ${alertItems.length ? `<table style="width:100%;border-collapse:collapse">${renderRows(alertItems)}</table>` : ''}
+        ${alertItems.length ? `<table style="width:100%;border-collapse:collapse">${tableHeader}${renderRows(alertItems)}</table>` : ''}
         ${refItems.length ? `
           <div style="padding:8px 16px;background:var(--bg);border-top:1px solid var(--border)">
             <details>
               <summary style="font-size:0.75rem;color:var(--text-muted);cursor:pointer">Reference items (${refItems.length}) — visual checks, as-needed tasks</summary>
-              <table style="width:100%;border-collapse:collapse;margin-top:8px">${renderRows(refItems)}</table>
+              <table style="width:100%;border-collapse:collapse;margin-top:8px">${tableHeader}${renderRows(refItems)}</table>
             </details>
           </div>` : ''}
       </div>`;
