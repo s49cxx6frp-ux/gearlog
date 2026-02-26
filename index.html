@@ -3630,14 +3630,19 @@ function renderDetail() {
   const conf = eq.scheduleConfidence || 'manual';
   if (conf === 'high') {
     if (uploadBtn) uploadBtn.style.display = 'none';
-    if (scheduleNote) scheduleNote.style.display = 'none';
+    if (scheduleNote) {
+      scheduleNote.style.display = '';
+      const manualsLink = eq.manualUrl ? ` · <a href="${eq.manualUrl}" target="_blank" style="color:var(--text-muted)">🔍 Search ManualsLib</a>` : '';
+      scheduleNote.innerHTML = `<span style="color:var(--text-muted)">📚 Schedule sourced from AI training data${manualsLink}</span>`;
+    }
   } else {
     if (uploadBtn) uploadBtn.style.display = '';
     if (scheduleNote) {
       scheduleNote.style.display = '';
+      const manualsLink = eq.manualUrl ? ` · <a href="${eq.manualUrl}" target="_blank" style="color:var(--text-muted)">🔍 Search ManualsLib</a>` : '';
       scheduleNote.innerHTML = conf === 'manual'
-        ? '📄 No AI schedule — <a href="#" onclick="document.getElementById(\'uploadManualInput\').click();return false;">upload your manual</a> to generate one'
-        : '⚠️ Schedule is approximate — <a href="#" onclick="document.getElementById(\'uploadManualInput\').click();return false;">upload your manual</a> to refine it';
+        ? `📄 No AI schedule — <a href="#" onclick="document.getElementById('uploadManualInput').click();return false;">upload your manual</a> to generate one${manualsLink}`
+        : `⚠️ Approximate schedule — <a href="#" onclick="document.getElementById('uploadManualInput').click();return false;">upload your manual</a> to refine it${manualsLink}`;
     }
   }
   document.getElementById('detailSub').textContent = [eq.year, eq.engine, eq.serial].filter(Boolean).join(' · ');
@@ -3888,7 +3893,7 @@ async function searchEquipmentText() {
     const confColor = data.confidence === 'high' ? 'var(--green)' : data.confidence === 'low' ? 'var(--red)' : 'var(--amber)';
     const confLabel = data.confidence === 'high' ? '✅ Found' : '⚠️ Approximate match';
     status.style.color = confColor;
-    status.innerHTML = `${confLabel}: <strong>${result.name}</strong>${result.notes ? '<br><span style="color:var(--text-muted);font-size:0.78rem">' + result.notes + '</span>' : ''}<br><span style="color:var(--text-muted);font-size:0.75rem">${specs.parts?.length||0} parts + ${specs.serviceIntervals?.length||0} service intervals ready. Review fields below then save.</span>${data.confidence !== 'high' ? '<br><span style="color:var(--amber);font-size:0.75rem">📄 For a more accurate schedule, upload your owner\'s manual after saving.</span>' : ''}`;
+    status.innerHTML = `${confLabel}: <strong>${result.name}</strong>${result.notes ? '<br><span style="color:var(--text-muted);font-size:0.78rem">' + result.notes + '</span>' : ''}<br><span style="color:var(--text-muted);font-size:0.75rem">${specs.parts?.length||0} parts + ${specs.serviceIntervals?.length||0} service intervals ready. Review fields below, then tap "Add to Garage" to save.</span>${data.confidence !== 'high' ? '<br><span style="color:var(--amber);font-size:0.75rem">📄 For a more accurate schedule, upload your owner\'s manual after saving.</span>' : ''}`;
 
   } catch (err) {
     console.error('AI search error:', err);
@@ -4024,7 +4029,7 @@ async function scanEquipmentPhoto(input) {
     const confColor2 = data.confidence === 'high' ? 'var(--green)' : data.confidence === 'low' ? 'var(--red)' : 'var(--amber)';
     const confLabel2 = data.confidence === 'high' ? '✅ Identified' : '⚠️ Approximate match';
     status.style.color = confColor2;
-    status.innerHTML = `${confLabel2}: <strong>${result.name}</strong>${result.notes ? '<br><span style="color:var(--text-muted);font-size:0.78rem">' + result.notes + '</span>' : ''}<br><span style="color:var(--text-muted);font-size:0.75rem">${specs.parts?.length||0} parts + ${specs.serviceIntervals?.length||0} service intervals ready. Review fields below then save.</span>${data.confidence !== 'high' ? '<br><span style="color:var(--amber);font-size:0.75rem">📄 For a more accurate schedule, upload your owner\'s manual after saving.</span>' : ''}`;
+    status.innerHTML = `${confLabel2}: <strong>${result.name}</strong>${result.notes ? '<br><span style="color:var(--text-muted);font-size:0.78rem">' + result.notes + '</span>' : ''}<br><span style="color:var(--text-muted);font-size:0.75rem">${specs.parts?.length||0} parts + ${specs.serviceIntervals?.length||0} service intervals ready. Review fields below, then tap "Add to Garage" to save.</span>${data.confidence !== 'high' ? '<br><span style="color:var(--amber);font-size:0.75rem">📄 For a more accurate schedule, upload your owner\'s manual after saving.</span>' : ''}`;
 
   } catch (err) {
     console.error('AI scan error:', err);
@@ -4149,6 +4154,7 @@ function saveEquipment() {
 
   // Pull in any AI-looked-up specs
   const specs = window._pendingEquipSpecs || {};
+  const scheduleConfidence = specs.confidence || 'manual';
   window._pendingEquipSpecs = null;
 
   const eq = {
@@ -4161,7 +4167,7 @@ function saveEquipment() {
     purchaseDate: document.getElementById('newEquipDate').value,
     addedAt: new Date().toISOString().slice(0,10),
     manualUrl: window._pendingManualUrl || '',
-    scheduleConfidence: window._pendingEquipSpecs?.confidence || 'manual',
+    scheduleConfidence,
     oilInterval: parseInt(document.getElementById('newEquipOilInterval').value)||50,
     notes: specs.notes || '',
     serviceIntervals: specs.serviceIntervals || [],
