@@ -1478,6 +1478,11 @@ async function pushToSupabase(data) {
         total_hours: eq.totalHours || 0,
         notes: eq.notes || '',
         service_intervals: eq.serviceIntervals || [],
+        schedule_confidence: eq.scheduleConfidence || 'manual',
+        manual_url: eq.manualUrl || '',
+        added_at: eq.addedAt || '',
+        service_trigger: eq.serviceTrigger || 'both',
+        cal_fallback_years: eq.calFallbackYears || 2,
         sort_order: data.equipment.indexOf(eq)
       }, { onConflict: 'id' });
 
@@ -1540,6 +1545,11 @@ async function loadFromSupabase() {
         oilInterval: isNaN(eq.oil_interval) ? eq.oil_interval : Number(eq.oil_interval),
         trackHours: eq.track_hours, totalHours: eq.total_hours,
         notes: eq.notes, serviceIntervals: eq.service_intervals || [],
+        scheduleConfidence: eq.schedule_confidence || 'manual',
+        manualUrl: eq.manual_url || '',
+        addedAt: eq.added_at || '',
+        serviceTrigger: eq.service_trigger || 'both',
+        calFallbackYears: eq.cal_fallback_years || 2,
         maintenance: (maintenance || []).filter(m => m.equipment_id === eq.id)
           .map(m => ({ id: m.id, date: m.date, type: m.type, notes: m.notes, nextDue: m.next_due, photo: m.photo || null })),
         hours: (hours || []).filter(h => h.equipment_id === eq.id)
@@ -4453,6 +4463,17 @@ async function handleManualUpload(input) {
   if (!eq) return;
 
   const statusNote = document.getElementById('scheduleConfidenceNote');
+
+  // Check file size — warn if likely over 100 pages (rough estimate: ~50KB/page)
+  if (file.size > 5 * 1024 * 1024) {
+    if (statusNote) {
+      statusNote.style.display = '';
+      statusNote.innerHTML = '⚠️ This PDF may be too large. Try uploading just the maintenance section (100 page max). <a href="https://smallpdf.com/split-pdf" target="_blank">Split your PDF here</a>.';
+    }
+    input.value = '';
+    return;
+  }
+
   if (statusNote) {
     statusNote.style.display = '';
     statusNote.innerHTML = '⏳ Reading manual and generating schedule...';
@@ -4492,7 +4513,14 @@ async function handleManualUpload(input) {
 
   } catch (err) {
     console.error('Manual upload error:', err);
-    if (statusNote) statusNote.innerHTML = 'Could not read manual: ' + err.message;
+    if (statusNote) {
+      const msg = err.message || '';
+      if (msg.includes('100 PDF pages')) {
+        statusNote.innerHTML = '⚠️ Manual too long (100 page max). Try uploading just the maintenance section. <a href="https://smallpdf.com/split-pdf" target="_blank">Split your PDF here</a>.';
+      } else {
+        statusNote.innerHTML = '⚠️ Could not read manual: ' + msg;
+      }
+    }
   }
   input.value = '';
 }
