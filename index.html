@@ -815,7 +815,7 @@
           <button class="btn btn-primary" onclick="openLogMaintenance()">+ Maintenance</button>
           <button class="btn btn-primary" onclick="openLogHours()">+ Hours</button>
           <button class="btn btn-primary" onclick="openLogPart()\">+ Parts/Cost</button>
-          <button class="btn btn-secondary" id="manualBtn" style="display:none" onclick="openManual()">📖 Owner's Manual</button>
+          <button class="btn btn-secondary" id="manualBtn" style="display:none" onclick="openManual()">🔍 Find Manual</button>
           <button class="btn btn-secondary" id="uploadManualBtn" style="display:none" onclick="document.getElementById('uploadManualInput').click()">📄 Upload Manual</button>
           <input type="file" id="uploadManualInput" accept="application/pdf" style="display:none" onchange="handleManualUpload(this)">
           <button class="btn btn-danger" onclick="deleteCurrentEquipment()">Delete</button>
@@ -3639,18 +3639,23 @@ function renderDetail() {
   const uploadBtn = document.getElementById('uploadManualBtn');
   const scheduleNote = document.getElementById('scheduleConfidenceNote');
   const conf = eq.scheduleConfidence || 'manual';
-  if (conf === 'high') {
+  const manualsLink = eq.manualUrl ? ` · <a href="${eq.manualUrl}" target="_blank" style="color:var(--text-muted)">🔍 Search ManualsLib</a>` : '';
+  if (conf === 'uploaded') {
     if (uploadBtn) uploadBtn.style.display = 'none';
     if (scheduleNote) {
       scheduleNote.style.display = '';
-      const manualsLink = eq.manualUrl ? ` · <a href="${eq.manualUrl}" target="_blank" style="color:var(--text-muted)">🔍 Search ManualsLib</a>` : '';
-      scheduleNote.innerHTML = `<span style="color:var(--text-muted)">📚 Schedule sourced from AI training data${manualsLink}</span>`;
+      scheduleNote.innerHTML = `<span style="color:var(--green)">📄 Schedule sourced from your uploaded manual</span>`;
+    }
+  } else if (conf === 'high') {
+    if (uploadBtn) uploadBtn.style.display = 'none';
+    if (scheduleNote) {
+      scheduleNote.style.display = '';
+      scheduleNote.innerHTML = `<span style="color:var(--text-muted)">📚 Schedule sourced from AI training data (high confidence)${manualsLink}</span>`;
     }
   } else {
     if (uploadBtn) uploadBtn.style.display = '';
     if (scheduleNote) {
       scheduleNote.style.display = '';
-      const manualsLink = eq.manualUrl ? ` · <a href="${eq.manualUrl}" target="_blank" style="color:var(--text-muted)">🔍 Search ManualsLib</a>` : '';
       scheduleNote.innerHTML = conf === 'manual'
         ? `📄 No AI schedule — <a href="#" onclick="document.getElementById('uploadManualInput').click();return false;">upload your manual</a> to generate one${manualsLink}`
         : `⚠️ Approximate schedule — <a href="#" onclick="document.getElementById('uploadManualInput').click();return false;">upload your manual</a> to refine it${manualsLink}`;
@@ -3727,9 +3732,13 @@ function renderDetail() {
         <td style="color:var(--text-muted);font-size:0.78rem;padding:8px 12px">${si.notes || ''}</td>
       </tr>`).join('');
 
-    const confBadge = eq.scheduleConfidence === 'high'
+    const confBadge = eq.scheduleConfidence === 'uploaded'
       ? '<span style="color:var(--green)">✅ From uploaded manual</span>'
-      : '<span style="color:var(--amber)">⚠️ AI training data estimate</span>';
+      : eq.scheduleConfidence === 'high'
+        ? '<span style="color:var(--green)">✅ AI training data (high confidence)</span>'
+        : eq.scheduleConfidence === 'medium'
+          ? '<span style="color:var(--amber)">⚠️ AI training data (approximate)</span>'
+          : '<span style="color:var(--amber)">⚠️ No AI schedule — upload manual to improve</span>';
 
     schedSection.style.display = '';
     schedSection.innerHTML = `
@@ -4502,7 +4511,7 @@ async function handleManualUpload(input) {
 
     if (Array.isArray(result.serviceIntervals) && result.serviceIntervals.length) {
       eq.serviceIntervals = result.serviceIntervals.filter(si => !si.dealerOnly);
-      eq.scheduleConfidence = 'high';
+      eq.scheduleConfidence = 'uploaded';
       eq.manualUrl = result.manualUrl || eq.manualUrl;
     }
 
