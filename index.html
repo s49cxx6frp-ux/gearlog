@@ -701,6 +701,7 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -816,8 +817,8 @@
           <button class="btn btn-primary" onclick="openLogHours()">+ Hours</button>
           <button class="btn btn-primary" onclick="openLogPart()\">+ Parts/Cost</button>
           <button class="btn btn-secondary" id="manualBtn" style="display:none" onclick="openManual()">🔍 Find Manual Online</button>
-          <button class="btn btn-secondary" id="uploadManualBtn" style="display:none" onclick="document.getElementById('uploadManualInput').click()">📄 Upload Manual PDF</button>
-          <input type="file" id="uploadManualInput" accept="application/pdf" style="display:none" onchange="handleManualUpload(this)">
+          <button class="btn btn-secondary" id="uploadManualBtn" style="display:none" onclick="document.getElementById('uploadManualInput').click()">📄 Upload Manual</button>
+          <input type="file" id="uploadManualInput" accept="application/pdf,.zip" multiple style="display:none" onchange="handleManualUpload(this)">
           <button class="btn btn-danger" onclick="deleteCurrentEquipment()">Delete</button>
           <button class="modal-close" onclick="closeDetailPanel()" title="Close" style="margin-left:8px">✕</button>
         </div>
@@ -4467,19 +4468,20 @@ function openManual() {
 }
 
 async function handleManualUpload(input) {
-  if (!input.files || !input.files[0]) return;
-  const file = input.files[0];
+  if (!input.files || !input.files.length) return;
+  const files = Array.from(input.files);
   const data = load();
   const eq = data.equipment.find(e => e.id === currentEquipId);
   if (!eq) return;
 
   const statusNote = document.getElementById('scheduleConfidenceNote');
 
-  // Check file size — warn if likely over 100 pages (rough estimate: ~50KB/page)
-  if (file.size > 5 * 1024 * 1024) {
+  // Check total size across all files
+  const totalSize = files.reduce((s, f) => s + f.size, 0);
+  if (totalSize > 15 * 1024 * 1024) {
     if (statusNote) {
       statusNote.style.display = '';
-      statusNote.innerHTML = '⚠️ This PDF may be too large. Try uploading just the maintenance section (100 page max). <a href="https://smallpdf.com/split-pdf" target="_blank">Split your PDF here</a>.';
+      statusNote.innerHTML = '⚠️ Files too large (15MB max total). <b>Tip:</b> Split your manual into 2-3 smaller PDFs using <a href="https://smallpdf.com/split-pdf" target="_blank">SmallPDF</a>, then select all the split files at once when uploading.';
     }
     input.value = '';
     return;
@@ -4487,16 +4489,40 @@ async function handleManualUpload(input) {
 
   if (statusNote) {
     statusNote.style.display = '';
-    statusNote.innerHTML = '⏳ Reading manual and generating schedule...';
+    statusNote.innerHTML = `⏳ Reading ${files.length > 1 ? files.length + ' manual sections' : 'manual'} and generating schedule...`;
   }
 
   try {
-    const base64 = await new Promise((res, rej) => {
+    // Expand any ZIP files into their contained PDFs
+    const expandedFiles = [];
+    for (const file of files) {
+      if (file.name.toLowerCase().endsWith('.zip')) {
+        const zip = await JSZip.loadAsync(file);
+        const pdfEntries = Object.values(zip.files).filter(f => !f.dir && f.name.toLowerCase().endsWith('.pdf'));
+        for (const entry of pdfEntries) {
+          const blob = await entry.async('blob');
+          expandedFiles.push(new File([blob], entry.name, { type: 'application/pdf' }));
+        }
+      } else {
+        expandedFiles.push(file);
+      }
+    }
+
+    if (!expandedFiles.length) {
+      if (statusNote) statusNote.innerHTML = '⚠️ No PDF files found in upload.';
+      input.value = '';
+      return;
+    }
+
+    if (statusNote) statusNote.innerHTML = `⏳ Reading ${expandedFiles.length} PDF${expandedFiles.length > 1 ? 's' : ''} and generating schedule...`;
+
+    // Convert all files to base64
+    const base64Pdfs = await Promise.all(expandedFiles.map(file => new Promise((res, rej) => {
       const reader = new FileReader();
       reader.onload = () => res(reader.result.split(',')[1]);
       reader.onerror = rej;
       reader.readAsDataURL(file);
-    });
+    })));
 
     const session = await sb.auth.getSession();
     const token = session.data.session?.access_token;
@@ -4505,7 +4531,7 @@ async function handleManualUpload(input) {
     const response = await fetch('https://zavnxlwqjiaudnetandu.supabase.co/functions/v1/claude-identify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ base64Pdf: base64, equipmentName: eq.name, searchQuery: eq.name })
+      body: JSON.stringify({ base64Pdfs, equipmentName: eq.name, searchQuery: eq.name })
     });
 
     const result = await response.json();
@@ -4527,7 +4553,7 @@ async function handleManualUpload(input) {
     if (statusNote) {
       const msg = err.message || '';
       if (msg.includes('100 PDF pages')) {
-        statusNote.innerHTML = '⚠️ Manual too long (100 page max). Try uploading just the maintenance section. <a href="https://smallpdf.com/split-pdf" target="_blank">Split your PDF here</a>.';
+        statusNote.innerHTML = '⚠️ Manual too long — split it into 2-3 smaller PDFs and upload all at once. <a href="https://smallpdf.com/split-pdf" target="_blank">Split with SmallPDF</a>, then select all the files when you click Upload.';
       } else {
         statusNote.innerHTML = '⚠️ Could not read manual: ' + msg;
       }
