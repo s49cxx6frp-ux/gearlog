@@ -815,8 +815,8 @@
           <button class="btn btn-primary" onclick="openLogMaintenance()">+ Maintenance</button>
           <button class="btn btn-primary" onclick="openLogHours()">+ Hours</button>
           <button class="btn btn-primary" onclick="openLogPart()\">+ Parts/Cost</button>
-          <button class="btn btn-secondary" id="manualBtn" style="display:none" onclick="openManual()">🔍 Find Manual</button>
-          <button class="btn btn-secondary" id="uploadManualBtn" style="display:none" onclick="document.getElementById('uploadManualInput').click()">📄 Upload Manual</button>
+          <button class="btn btn-secondary" id="manualBtn" style="display:none" onclick="openManual()">🔍 Find Manual Online</button>
+          <button class="btn btn-secondary" id="uploadManualBtn" style="display:none" onclick="document.getElementById('uploadManualInput').click()">📄 Upload Manual PDF</button>
           <input type="file" id="uploadManualInput" accept="application/pdf" style="display:none" onchange="handleManualUpload(this)">
           <button class="btn btn-danger" onclick="deleteCurrentEquipment()">Delete</button>
           <button class="modal-close" onclick="closeDetailPanel()" title="Close" style="margin-left:8px">✕</button>
@@ -3639,26 +3639,28 @@ function renderDetail() {
   const uploadBtn = document.getElementById('uploadManualBtn');
   const scheduleNote = document.getElementById('scheduleConfidenceNote');
   const conf = eq.scheduleConfidence || 'manual';
-  const manualsLink = eq.manualUrl ? ` · <a href="${eq.manualUrl}" target="_blank" style="color:var(--text-muted)">🔍 Search ManualsLib</a>` : '';
   if (conf === 'uploaded') {
+    // Uploaded — hide upload button, keep find manual
     if (uploadBtn) uploadBtn.style.display = 'none';
     if (scheduleNote) {
       scheduleNote.style.display = '';
       scheduleNote.innerHTML = `<span style="color:var(--green)">📄 Schedule sourced from your uploaded manual</span>`;
     }
   } else if (conf === 'high') {
-    if (uploadBtn) uploadBtn.style.display = 'none';
+    // High confidence AI — show upload to improve, keep find manual
+    if (uploadBtn) uploadBtn.style.display = '';
     if (scheduleNote) {
       scheduleNote.style.display = '';
-      scheduleNote.innerHTML = `<span style="color:var(--text-muted)">📚 Schedule sourced from AI training data (high confidence)${manualsLink}</span>`;
+      scheduleNote.innerHTML = `<span style="color:var(--text-muted)">📚 Schedule sourced from AI training data (high confidence) — upload your manual to verify</span>`;
     }
   } else {
+    // Low/no confidence — show both buttons with nudge
     if (uploadBtn) uploadBtn.style.display = '';
     if (scheduleNote) {
       scheduleNote.style.display = '';
       scheduleNote.innerHTML = conf === 'manual'
-        ? `📄 No AI schedule — <a href="#" onclick="document.getElementById('uploadManualInput').click();return false;">upload your manual</a> to generate one${manualsLink}`
-        : `⚠️ Approximate schedule — <a href="#" onclick="document.getElementById('uploadManualInput').click();return false;">upload your manual</a> to refine it${manualsLink}`;
+        ? `⚠️ No AI schedule found — find your manual online or upload it to generate one`
+        : `⚠️ Approximate schedule — upload your manual to get the exact intervals`;
     }
   }
   document.getElementById('detailSub').textContent = [eq.year, eq.engine, eq.serial].filter(Boolean).join(' · ');
