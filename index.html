@@ -4664,6 +4664,35 @@ async function handleManualUpload(input) {
     return;
   }
 
+  // Show confirmation modal — only proceed if user confirms
+  _pendingManualUploadInput = input;
+  _pendingManualUploadFiles = files;
+  document.getElementById('modalManualUploadConfirm').classList.add('visible');
+  return;
+}
+
+let _pendingManualUploadInput = null;
+let _pendingManualUploadFiles = null;
+
+function dismissManualUploadConfirm() {
+  document.getElementById('modalManualUploadConfirm').classList.remove('visible');
+  if (_pendingManualUploadInput) _pendingManualUploadInput.value = '';
+  _pendingManualUploadInput = null;
+  _pendingManualUploadFiles = null;
+}
+
+async function confirmManualUpload() {
+  document.getElementById('modalManualUploadConfirm').classList.remove('visible');
+  const input = _pendingManualUploadInput;
+  const files = _pendingManualUploadFiles;
+  _pendingManualUploadInput = null;
+  _pendingManualUploadFiles = null;
+
+  const data = load();
+  const eq = data.equipment.find(e => e.id === currentEquipId);
+  if (!eq) return;
+  const statusNote = document.getElementById('scheduleConfidenceNote');
+
   if (statusNote) {
     statusNote.style.display = '';
     statusNote.innerHTML = `⏳ Reading ${files.length > 1 ? files.length + ' manual sections' : 'manual'} and generating schedule...`;
@@ -5404,6 +5433,24 @@ async function startCheckout() {
 }
 
 </script>
+
+<!-- Manual Upload Confirmation Modal -->
+<div class="modal-overlay" id="modalManualUploadConfirm" style="z-index:1100">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header" style="background:var(--amber-pale);border-bottom:2px solid var(--amber)">
+      <h3 style="color:var(--amber)">📄 Replace Service Schedule?</h3>
+      <button class="modal-close" onclick="dismissManualUploadConfirm()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px">
+      <p style="color:var(--text);font-size:0.95rem;margin:0 0 10px 0">Uploading this manual will <strong>replace your current service schedule</strong> with one generated directly from the manual.</p>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin:0">Any custom edits you've made to the existing schedule will be lost. This can't be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="dismissManualUploadConfirm()">Cancel</button>
+      <button class="btn btn-primary" id="manualUploadConfirmBtn" style="background:var(--amber);border-color:var(--amber)" onclick="confirmManualUpload()">Yes, upload & replace</button>
+    </div>
+  </div>
+</div>
 
 <!-- Kit Upgrade Prompt Modal -->
 <div class="modal-overlay" id="modalKitPrompt" style="z-index:1100">
