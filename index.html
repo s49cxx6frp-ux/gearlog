@@ -1068,6 +1068,7 @@
       <div class="form-group">
         <label>Equipment Name</label>
         <input type="text" id="newEquipName" placeholder="e.g. Honda Mower, Husqvarna 450X">
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">💡 Have two of the same model? Add a nickname like "Front Yard Mower" to tell them apart.</div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -5330,6 +5331,7 @@ function renderHistory() {
         notes: m.notes,
         photo: m.photo || null,
         id: m.id,
+        isSystem: m.isSystem || false,
       });
     });
     eq.hours.forEach(h => {
@@ -5403,6 +5405,30 @@ function renderHistory() {
     html += `<div style="margin-bottom:22px">
       <div style="font-family:var(--font-mono);font-size:0.75rem;font-weight:700;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;padding:4px 0 10px;border-bottom:1px solid var(--border);margin-bottom:10px">${fmtDate(date)}</div>`;
     dayEvents.forEach(ev => {
+      // System entries (manual upload changelog) get special color-coded rendering
+      if (ev.isSystem) {
+        const formattedNotes = (ev.notes||'').split('\n').map(line => {
+          if (line.startsWith('ADDED')) return '<div style="color:var(--green);font-weight:700;margin-top:6px;font-size:0.78rem;letter-spacing:0.05em">' + line + '</div>';
+          if (line.startsWith('CHANGED')) return '<div style="color:var(--orange);font-weight:700;margin-top:6px;font-size:0.78rem;letter-spacing:0.05em">' + line + '</div>';
+          if (line.startsWith('REMOVED')) return '<div style="color:var(--red);font-weight:700;margin-top:6px;font-size:0.78rem;letter-spacing:0.05em">' + line + '</div>';
+          if (line.startsWith('  +')) return '<div style="color:var(--green);font-size:0.8rem;padding-left:8px">' + line + '</div>';
+          if (line.startsWith('  ~')) return '<div style="color:var(--orange);font-size:0.8rem;padding-left:8px">' + line + '</div>';
+          if (line.startsWith('  -')) return '<div style="color:var(--red);font-size:0.8rem;padding-left:8px">' + line + '</div>';
+          return '<div style="font-size:0.8rem;padding-left:8px">' + line + '</div>';
+        }).join('');
+        html += `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 14px;background:rgba(245,130,31,0.04);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="selectEquipment('${ev.equipId}')">
+          <div style="font-size:1.3rem;flex-shrink:0;margin-top:1px">📋</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-family:var(--font-head);font-weight:700;font-size:0.9rem">Schedule Updated from Manual</span>
+              <span style="font-size:0.72rem;background:rgba(245,130,31,0.15);color:var(--orange);border:1px solid rgba(245,130,31,0.3);border-radius:10px;padding:1px 8px">SYSTEM</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px">${getIcon(ev.equipType)} ${ev.equipName}</div>
+            <div style="margin-top:6px">${formattedNotes}</div>
+          </div>
+          <button onclick="event.stopPropagation();deleteActivityEntry('${ev.equipId}','${ev.id}','maintenance')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:4px 8px;border-radius:4px;flex-shrink:0;transition:color 0.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'" title="Delete">✕</button>
+        </div>`;
+      } else {
       html += `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 14px;background:${kindBg[ev.kind]};border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="selectEquipment('${ev.equipId}')">
         <div style="font-size:1.3rem;flex-shrink:0;margin-top:1px">${ev.icon}</div>
         <div style="flex:1;min-width:0">
@@ -5416,6 +5442,7 @@ function renderHistory() {
         </div>
         <button onclick="event.stopPropagation();deleteActivityEntry('${ev.equipId}','${ev.id}','${ev.kind === 'part' ? 'parts' : ev.kind}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:4px 8px;border-radius:4px;flex-shrink:0;transition:color 0.15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'" title="Delete">✕</button>
       </div>`;
+      }
     });
     html += '</div>';
   });
@@ -5603,7 +5630,7 @@ async function startCheckout() {
           <div style="color:var(--text-muted);font-size:0.8rem">Flag everything as overdue — I'll work through the service list</div>
         </button>
         <button onclick="applyMaintenanceState('select')" style="text-align:left;padding:14px 16px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-weight:700;color:var(--amber);font-size:0.9rem;margin-bottom:2px">🗓 Let me set each task individually</div>
+          <div style="font-weight:700;color:var(--amber);font-size:0.9rem;margin-bottom:2px">📋 Let me set each task individually</div>
           <div style="color:var(--text-muted);font-size:0.8rem">I know when each service was last done — I'll enter dates myself</div>
         </button>
       </div>
