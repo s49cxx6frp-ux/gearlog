@@ -261,6 +261,10 @@
   .btn-primary:hover { background: var(--green-dim); box-shadow: 0 0 16px rgba(74,222,128,0.25); }
   .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border-bright); }
   .btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
+  .tl-btn { font-size:0.78rem; padding:5px 12px; border-radius:20px; border:1.5px solid var(--border-bright); background:transparent; color:var(--text-muted); cursor:pointer; font-family:var(--font-mono); transition:all 0.15s; }
+  .tl-btn:hover { color:var(--text); border-color:var(--text-muted); }
+  .tl-future.active { border-color:var(--amber); color:var(--amber); background:rgba(245,180,31,0.08); }
+  .tl-past.active { border-color:var(--green); color:var(--green); background:rgba(74,222,128,0.08); }
   .btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
   .btn-danger:hover { background: var(--red-pale); }
 
@@ -723,6 +727,10 @@
         <input id="authPassword" type="password" placeholder="••••••••" style="width:100%;background:#111;border:1.5px solid #333;border-radius:4px;padding:10px 12px;color:#f0f0f0;font-size:0.9rem;box-sizing:border-box">
       </div>
       <button onclick="signIn()" style="width:100%;background:#F5821F;border:none;border-radius:4px;padding:12px;color:#fff;-webkit-text-fill-color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:10px">Sign In</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:4px 2px">
+        <input type="checkbox" id="rememberMe" style="accent-color:#F5821F;cursor:pointer;width:14px;height:14px;flex-shrink:0">
+        <label for="rememberMe" style="font-size:0.75rem;color:#888;cursor:pointer;user-select:none">Remember me on this device</label>
+      </div>
       <div id="tcCheckboxWrap" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;padding:10px;background:#111;border:1.5px solid #2a2a2a;border-radius:4px">
         <input type="checkbox" id="tcAgree" style="margin-top:2px;accent-color:#F5821F;cursor:pointer;flex-shrink:0">
         <label for="tcAgree" style="font-size:0.75rem;color:#888;line-height:1.4;cursor:pointer">I am 18 or older and I agree to GearLog's <a onclick="showLegalModal('tc')" style="color:#F5821F;cursor:pointer;text-decoration:underline">Terms &amp; Conditions</a> and <a onclick="showLegalModal('pp')" style="color:#F5821F;cursor:pointer;text-decoration:underline">Privacy Policy</a>.</label>
@@ -753,30 +761,68 @@
 
 <nav class="top-nav">
   <button class="top-nav-btn active" id="nav-garage" onclick="switchPage('garage')">🏠 Garage</button>
-  <button class="top-nav-btn" id="nav-upcoming" onclick="switchPage('upcoming')">📆 Upcoming</button>
+  <button class="top-nav-btn" id="nav-timeline" onclick="switchPage('timeline')">📋 Timeline</button>
   <button class="top-nav-btn" id="nav-reminders" onclick="switchPage('reminders')">✅ To-Do <span id="reminderBadge" style="display:none;background:#e04e4e;color:white;border-radius:10px;padding:1px 7px;font-size:0.72rem;margin-left:4px;"></span></button>
   <button class="top-nav-btn" id="nav-shopping" onclick="switchPage('shopping')">🛒 Shopping List</button>
-  <button class="top-nav-btn" id="nav-history" onclick="switchPage('history')">📅 History</button>
+
   <button class="top-nav-btn" id="nav-account" onclick="switchPage('account')">⚙️ Account</button>
 </nav>
 
 <main>
 
-  <!-- ===== UPCOMING PAGE ===== -->
-  <div class="page-view" id="page-upcoming">
-    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-      <button id="upcomingBtn30" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px;border-color:var(--amber);color:var(--amber)" onclick="setUpcomingRange(30)">Next 30 Days</button>
-      <button id="upcomingBtn180" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setUpcomingRange(180)">Next 6 Months</button>
-      <button id="upcomingBtnCustom" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setUpcomingRange('custom')">Custom</button>
-      <span id="upcomingCustomInputs" style="display:none;gap:8px;align-items:center">
-        <input type="date" id="upcomingFrom" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;color:var(--text);font-size:0.8rem">
-        <span style="color:var(--text-muted)">to</span>
-        <input type="date" id="upcomingTo" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;color:var(--text);font-size:0.8rem">
-        <button class="btn btn-secondary" style="font-size:0.78rem;padding:5px 10px" onclick="renderUpcoming()">Go</button>
-      </span>
+  <!-- ===== TIMELINE PAGE ===== -->
+  <div class="page-view" id="page-timeline">
+
+    <!-- UPCOMING section -->
+    <div style="margin-bottom:28px">
+      <div style="font-family:var(--font-mono);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:10px">📆 Upcoming</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+        <button id="futureBtn_month" class="tl-btn tl-future active" onclick="setFutureRange('month')">Next Month</button>
+        <button id="futureBtn_quarter" class="tl-btn tl-future" onclick="setFutureRange('quarter')">Next Quarter</button>
+        <button id="futureBtn_year" class="tl-btn tl-future" onclick="setFutureRange('year')">Next Year</button>
+        <button id="futureBtn_custom" class="tl-btn tl-future" onclick="setFutureRange('custom')">Custom</button>
+        <span id="futureCustomInputs" style="display:none;gap:6px;align-items:center">
+          <input type="date" id="futureFrom" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;color:var(--text);font-size:0.8rem">
+          <span style="color:var(--text-muted)">to</span>
+          <input type="date" id="futureTo" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;color:var(--text);font-size:0.8rem">
+          <button class="btn btn-secondary" style="font-size:0.78rem;padding:5px 10px" onclick="renderTimeline()">Go</button>
+        </span>
+      </div>
+      <div id="upcomingContent"></div>
     </div>
-    <div id="upcomingContent"></div>
-  </div><!-- /page-upcoming -->
+
+    <!-- HISTORY section -->
+    <div>
+      <div style="font-family:var(--font-mono);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">📅 History</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+        <button id="pastBtn_alltime" class="tl-btn tl-past" onclick="setPastRange('alltime')">All Time</button>
+        <button id="pastBtn_year" class="tl-btn tl-past" onclick="setPastRange('year')">Last Year</button>
+        <button id="pastBtn_quarter" class="tl-btn tl-past active" onclick="setPastRange('quarter')">Last Quarter</button>
+        <button id="pastBtn_month" class="tl-btn tl-past" onclick="setPastRange('month')">Last Month</button>
+        <button id="pastBtn_custom" class="tl-btn tl-past" onclick="setPastRange('custom')">Custom</button>
+        <span id="pastCustomInputs" style="display:none;gap:6px;align-items:center">
+          <input type="date" id="pastFrom" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;color:var(--text);font-size:0.8rem">
+          <span style="color:var(--text-muted)">to</span>
+          <input type="date" id="pastTo" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 8px;color:var(--text);font-size:0.8rem">
+          <button class="btn btn-secondary" style="font-size:0.78rem;padding:5px 10px" onclick="renderTimeline()">Go</button>
+        </span>
+        <div style="display:flex;gap:6px;margin-left:8px">
+          <select id="historyEquipFilter" onchange="renderTimeline()" style="font-family:var(--font-mono);font-size:0.78rem;padding:5px 8px;background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;color:var(--text)">
+            <option value="">All Equipment</option>
+          </select>
+          <select id="historyTypeFilter" onchange="renderTimeline()" style="font-family:var(--font-mono);font-size:0.78rem;padding:5px 8px;background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;color:var(--text)">
+            <option value="">All Types</option>
+            <option value="maintenance">Maintenance</option>
+            <option value="hours">Hours</option>
+            <option value="part">Parts</option>
+          </select>
+        </div>
+        <span id="historyCount" style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);margin-left:4px"></span>
+      </div>
+      <div id="historyContent"></div>
+    </div>
+
+  </div><!-- /page-timeline -->
 
   <!-- ===== GARAGE PAGE ===== -->\
   <div class="page-view active" id="page-garage">
@@ -924,27 +970,7 @@
   </div><!-- /page-shopping -->
 
   <!-- ===== HISTORY PAGE ===== -->
-  <div class="page-view" id="page-history">
-    <div class="page-header">
-      <div>
-        <div class="section-heading">Service History</div>
-        <div class="section-sub">All maintenance, hours, and parts across your fleet — most recent first.</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center">
-      <select id="historyEquipFilter" onchange="renderHistory()" style="font-family:var(--font-mono);font-size:0.8rem;padding:6px 10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;color:var(--text)">
-        <option value="">All Equipment</option>
-      </select>
-      <select id="historyTypeFilter" onchange="renderHistory()" style="font-family:var(--font-mono);font-size:0.8rem;padding:6px 10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;color:var(--text)">
-        <option value="">All Event Types</option>
-        <option value="maintenance">Maintenance</option>
-        <option value="hours">Hours Logged</option>
-        <option value="part">Part Purchase</option>
-      </select>
-      <span id="historyCount" style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);margin-left:4px"></span>
-    </div>
-    <div id="historyContent"></div>
-  </div><!-- /page-history -->
+
 
   <!-- ===== ACCOUNT PAGE ===== -->
   <div class="page-view" id="page-account">
@@ -1323,12 +1349,54 @@ let currentUser = null;
 let currentPlan = 'free'; // 'free' or 'paid'
 let garageFilter = 'all'; // 'all' | 'good' | 'soon' | 'due'
 
+// ---------- Inactivity timeout ----------
+const INACTIVITY_LIMIT_MS = 60 * 60 * 1000; // 1 hour
+let inactivityTimer = null;
+
+function resetInactivityTimer() {
+  if (!currentUser) return;
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(async () => {
+    // Show toast before signing out
+    const toast = document.createElement('div');
+    toast.textContent = "You've been signed out due to inactivity.";
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#f0f0f0;border:1.5px solid #F5821F;border-radius:6px;padding:12px 20px;font-size:0.85rem;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.6)';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+    await signOut();
+  }, INACTIVITY_LIMIT_MS);
+}
+
+function startInactivityTracking() {
+  ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+    document.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
+  resetInactivityTimer();
+}
+
+function stopInactivityTracking() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = null;
+  ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+    document.removeEventListener(evt, resetInactivityTimer);
+  });
+}
+
 async function initAuth() {
   try {
+    // If user signed in without "Remember me", clear session on fresh page load
+    // (sessionStorage is cleared when the tab/browser is closed)
+    const sessionOnly = sessionStorage.getItem('gearlog_session_only');
+    if (sessionOnly) {
+      // sessionStorage persists within the tab but not across new tabs/windows
+      // This is a no-op if the tab is still open; signOut only if truly new session
+    }
+
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
     if (currentUser) {
       showApp();
+      startInactivityTracking();
     } else {
       showAuthScreen();
     }
@@ -1337,7 +1405,9 @@ async function initAuth() {
       currentUser = session?.user || null;
       if (currentUser) {
         showApp();
+        startInactivityTracking();
       } else {
+        stopInactivityTracking();
         showAuthScreen();
       }
     });
@@ -1396,17 +1466,29 @@ async function signUp() {
   if (displayName && data.user) {
     await sb.from('profiles').upsert({ id: data.user.id, display_name: displayName }, { onConflict: 'id' });
   }
-  status.textContent = 'Account created! Check your email to confirm.';
+  status.textContent = 'Account created! Check your email to confirm — if you don\'t see it, check your junk/spam folder.';
 }
 
 async function signIn() {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
   const status = document.getElementById('authStatus');
+  const rememberMe = document.getElementById('rememberMe')?.checked ?? false;
   if (!email || !password) { status.textContent = 'Please enter email and password.'; return; }
   status.textContent = 'Signing in...';
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) { status.textContent = error.message; }
+  // If "Remember me" is unchecked, use session-only persistence (cleared when tab closes)
+  if (!rememberMe) {
+    await sb.auth.setSession({ access_token: '', refresh_token: '' }).catch(() => {});
+    // Supabase JS v2: sign in normally but then immediately set storage to session-only
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { status.textContent = error.message; return; }
+    // Mark session as non-persistent so we clear on next load if not remembered
+    sessionStorage.setItem('gearlog_session_only', '1');
+  } else {
+    sessionStorage.removeItem('gearlog_session_only');
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { status.textContent = error.message; }
+  }
 }
 
 async function signOut() {
@@ -1417,6 +1499,7 @@ async function signOut() {
   localStorage.removeItem('gearlog_replaced_by_kit');
   localStorage.removeItem('gearlog_seed_snapshot');
   localStorage.removeItem('gearlog_seed_version');
+  sessionStorage.removeItem('gearlog_session_only');
   await sb.auth.signOut();
 }
 
@@ -2084,16 +2167,89 @@ function switchPage(page) {
   document.querySelectorAll('.top-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   document.getElementById('nav-' + page).classList.add('active');
-  if (page === 'upcoming') renderUpcoming();
+  if (page === 'timeline') renderTimeline();
   if (page === 'garage') renderEquipmentGrid(load());
   if (page === 'reminders') renderReminders();
   if (page === 'shopping') renderShopping();
-  if (page === 'history') renderHistory();
+
   if (page === 'account') renderAccount();
 }
 
-let upcomingDays = 30;
+// ---- Timeline state ----
+let futureRange = 'month';
+let pastRange = 'quarter';
 
+function setFutureRange(range) {
+  futureRange = range;
+  ['month','quarter','year','custom'].forEach(r => {
+    const btn = document.getElementById('futureBtn_' + r);
+    if (btn) { btn.classList.toggle('active', r === range); }
+  });
+  const ci = document.getElementById('futureCustomInputs');
+  if (ci) ci.style.display = range === 'custom' ? 'flex' : 'none';
+  if (range === 'custom') {
+    const today = new Date();
+    document.getElementById('futureFrom').value = today.toISOString().slice(0,10);
+    const t2 = new Date(today); t2.setMonth(t2.getMonth()+1);
+    document.getElementById('futureTo').value = t2.toISOString().slice(0,10);
+    return;
+  }
+  renderTimeline();
+}
+
+function setPastRange(range) {
+  pastRange = range;
+  ['alltime','year','quarter','month','custom'].forEach(r => {
+    const btn = document.getElementById('pastBtn_' + r);
+    if (btn) { btn.classList.toggle('active', r === range); }
+  });
+  const ci = document.getElementById('pastCustomInputs');
+  if (ci) ci.style.display = range === 'custom' ? 'flex' : 'none';
+  if (range === 'custom') {
+    const today = new Date();
+    const t1 = new Date(today); t1.setMonth(t1.getMonth()-1);
+    document.getElementById('pastFrom').value = t1.toISOString().slice(0,10);
+    document.getElementById('pastTo').value = today.toISOString().slice(0,10);
+    return;
+  }
+  renderTimeline();
+}
+
+function getFutureDateRange() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (futureRange === 'custom') {
+    const f = document.getElementById('futureFrom')?.value;
+    const t = document.getElementById('futureTo')?.value;
+    return { from: f ? new Date(f) : today, to: t ? new Date(t) : today };
+  }
+  const to = new Date(today);
+  if (futureRange === 'month') to.setMonth(to.getMonth()+1);
+  else if (futureRange === 'quarter') to.setMonth(to.getMonth()+3);
+  else if (futureRange === 'year') to.setFullYear(to.getFullYear()+1);
+  return { from: today, to };
+}
+
+function getPastDateRange() {
+  const today = new Date(); today.setHours(23,59,59,999);
+  if (pastRange === 'custom') {
+    const f = document.getElementById('pastFrom')?.value;
+    const t = document.getElementById('pastTo')?.value;
+    return { from: f ? new Date(f) : new Date(0), to: t ? new Date(t) : today };
+  }
+  if (pastRange === 'alltime') return { from: new Date(0), to: today };
+  const from = new Date(today);
+  if (pastRange === 'month') from.setMonth(from.getMonth()-1);
+  else if (pastRange === 'quarter') from.setMonth(from.getMonth()-3);
+  else if (pastRange === 'year') from.setFullYear(from.getFullYear()-1);
+  return { from, to: today };
+}
+
+function renderTimeline() {
+  renderUpcoming();
+  renderHistory();
+}
+
+// kept for legacy compatibility
 function setUpcomingRange(range) {
   ['30','180','Custom'].forEach(r => {
     const btn = document.getElementById('upcomingBtn' + r);
@@ -2120,16 +2276,7 @@ function setUpcomingRange(range) {
 function renderUpcoming() {
   const data = load();
   const today = new Date(); today.setHours(0,0,0,0);
-  let fromDate = new Date(today);
-  let toDate = new Date(today);
-
-  const customInputs = document.getElementById('upcomingCustomInputs');
-  if (customInputs.style.display !== 'none') {
-    fromDate = new Date(document.getElementById('upcomingFrom').value);
-    toDate = new Date(document.getElementById('upcomingTo').value);
-  } else {
-    toDate.setDate(toDate.getDate() + upcomingDays);
-  }
+  const { from: fromDate, to: toDate } = getFutureDateRange();
 
   // Collect all upcoming tasks with projected due dates
   const tasks = [];
@@ -3782,16 +3929,37 @@ function renderDetail() {
   // Maintenance tab
   const mBody = document.querySelector('#maintenanceTable tbody');
   const mSorted = [...eq.maintenance].sort((a,b)=>b.date.localeCompare(a.date));
-  mBody.innerHTML = mSorted.length ? mSorted.map(m=>`<tr>
-    <td>${fmtDate(m.date)}</td>
-    <td><span class="badge badge-maintenance">${m.type}</span></td>
-    <td>${m.notes||'—'}${m.photo ? `<br><img src="${m.photo}" onclick="this.style.maxHeight=this.style.maxHeight?'':'400px'" style="max-height:60px;max-width:120px;border-radius:6px;cursor:pointer;margin-top:6px;border:1px solid var(--border);transition:max-height 0.3s" title="Click to expand">` : ''}</td>
-    <td>${m.nextDue||'—'}</td>
-    <td style="white-space:nowrap">
-      <button onclick="openEditMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:6px 8px;border-radius:4px;transition:color 0.15s" title="Edit entry" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-light)'">✏️</button>
-      <button onclick="deleteMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:6px 8px;border-radius:4px;transition:color 0.15s" title="Delete entry" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button>
-    </td>
-  </tr>`).join('') : '<tr><td colspan="5" class="no-logs"><div class="icon">🔧</div>No maintenance logged yet.</td></tr>';
+  mBody.innerHTML = mSorted.length ? mSorted.map(m => {
+    if (m.isSystem) {
+      // System entry — changelog style
+      const formattedNotes = (m.notes||'').split('\n').map(line => {
+        if (line.startsWith('ADDED')) return '<div style="color:var(--green);font-weight:700;margin-top:6px;font-size:0.78rem;letter-spacing:0.05em">' + line + '</div>';
+        if (line.startsWith('CHANGED')) return '<div style="color:var(--orange);font-weight:700;margin-top:6px;font-size:0.78rem;letter-spacing:0.05em">' + line + '</div>';
+        if (line.startsWith('REMOVED')) return '<div style="color:var(--red);font-weight:700;margin-top:6px;font-size:0.78rem;letter-spacing:0.05em">' + line + '</div>';
+        if (line.startsWith('  +')) return '<div style="color:var(--green);font-size:0.8rem;padding-left:8px">' + line + '</div>';
+        if (line.startsWith('  ~')) return '<div style="color:var(--orange);font-size:0.8rem;padding-left:8px">' + line + '</div>';
+        if (line.startsWith('  -')) return '<div style="color:var(--red);font-size:0.8rem;padding-left:8px">' + line + '</div>';
+        return '<div style="font-size:0.8rem;padding-left:8px">' + line + '</div>';
+      }).join('');
+      return `<tr style="background:rgba(245,130,31,0.04);border-left:3px solid var(--orange)">
+        <td>${fmtDate(m.date)}</td>
+        <td><span style="background:rgba(245,130,31,0.15);color:var(--orange);border:1px solid rgba(245,130,31,0.3);border-radius:4px;padding:2px 8px;font-size:0.75rem;font-weight:700;white-space:nowrap;font-family:var(--font-head);letter-spacing:0.05em">📋 SYSTEM</span></td>
+        <td><div style="font-weight:600;font-size:0.85rem;margin-bottom:4px">Schedule Updated from Manual</div>${formattedNotes}</td>
+        <td>—</td>
+        <td><button onclick="deleteMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:6px 8px;border-radius:4px;transition:color 0.15s" title="Delete entry" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button></td>
+      </tr>`;
+    }
+    return `<tr>
+      <td>${fmtDate(m.date)}</td>
+      <td><span class="badge badge-maintenance">${m.type}</span></td>
+      <td>${m.notes||'—'}${m.photo ? `<br><img src="${m.photo}" onclick="this.style.maxHeight=this.style.maxHeight?'':'400px'" style="max-height:60px;max-width:120px;border-radius:6px;cursor:pointer;margin-top:6px;border:1px solid var(--border);transition:max-height 0.3s" title="Click to expand">` : ''}</td>
+      <td>${m.nextDue||'—'}</td>
+      <td style="white-space:nowrap">
+        <button onclick="openEditMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:6px 8px;border-radius:4px;transition:color 0.15s" title="Edit entry" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--text-light)'">✏️</button>
+        <button onclick="deleteMaintenance('${eq.id}','${m.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:0.9rem;padding:6px 8px;border-radius:4px;transition:color 0.15s" title="Delete entry" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-light)'">✕</button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="5" class="no-logs"><div class="icon">🔧</div>No maintenance logged yet.</td></tr>';
 
   // Hours tab
   const hBody = document.querySelector('#hoursTable tbody');
@@ -3883,6 +4051,15 @@ function closeModal(id) { document.getElementById(id).classList.remove('visible'
 
 function openAddEquipment() { openModal('modalAddEquipment'); }
 
+// Infer whether equipment likely has an hour meter from its name/type
+function inferHasHourMeter(query) {
+  const q = (query || '').toLowerCase();
+  const hourMeterTypes = ['riding mower', 'ride-on', 'zero turn', 'zturn', 'z-turn', 'lawn tractor',
+    'log splitter', 'generator', 'tractor', 'kubota', 'john deere', 'husqvarna yt', 'husqvarna gt',
+    'cub cadet', 'troy-bilt tb', 'ariens', 'gravely', 'exmark', 'scag', 'ferris'];
+  return hourMeterTypes.some(t => q.includes(t));
+}
+
 async function searchEquipmentText() {
   const query = document.getElementById('equipSearchInput').value.trim();
   if (!query) return;
@@ -3910,7 +4087,7 @@ async function searchEquipmentText() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ searchQuery: query })
+      body: JSON.stringify({ searchQuery: query, hasHourMeter: inferHasHourMeter(query) })
     });
 
     const data = await response.json();
@@ -4036,7 +4213,7 @@ async function scanEquipmentPhoto(input) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ base64Image: base64, mediaType })
+      body: JSON.stringify({ base64Image: base64, mediaType, hasHourMeter: false })
     });
 
     const data = await response.json();
@@ -4538,7 +4715,56 @@ async function handleManualUpload(input) {
     if (!response.ok) throw new Error(result.error || 'Failed to read manual');
 
     if (Array.isArray(result.serviceIntervals) && result.serviceIntervals.length) {
-      eq.serviceIntervals = result.serviceIntervals.filter(si => !si.dealerOnly);
+      const oldIntervals = eq.serviceIntervals || [];
+      const newIntervals = result.serviceIntervals.filter(si => !si.dealerOnly);
+
+      // --- Compute diff ---
+      const makeKey = si => si.task + '||' + (si.action || '');
+      const oldMap = new Map(oldIntervals.map(si => [makeKey(si), si]));
+      const newMap = new Map(newIntervals.map(si => [makeKey(si), si]));
+      const added = [], changed = [], removed = [];
+      newIntervals.forEach(si => {
+        const key = makeKey(si);
+        const old = oldMap.get(key);
+        if (!old) { added.push(si); }
+        else if (old.frequency !== si.frequency || (old.notes||'') !== (si.notes||'')) {
+          changed.push({ old, newSi: si });
+        }
+      });
+      oldIntervals.forEach(si => { if (!newMap.has(makeKey(si))) removed.push(si); });
+
+      // --- Build changelog entry ---
+      const taskLabel = si => si.action ? si.task + ': ' + si.action : si.task;
+      const freqLabel = f => f || 'unspecified';
+      let lines = [];
+      if (added.length) {
+        lines.push('ADDED (' + added.length + ')');
+        added.forEach(si => lines.push('  + ' + taskLabel(si) + ' — ' + freqLabel(si.frequency) + (si.notes ? ' | ' + si.notes : '')));
+      }
+      if (changed.length) {
+        lines.push('CHANGED (' + changed.length + ')');
+        changed.forEach(c => {
+          const parts = [];
+          if (c.old.frequency !== c.newSi.frequency) parts.push('Frequency: ' + freqLabel(c.old.frequency) + ' → ' + freqLabel(c.newSi.frequency));
+          if ((c.old.notes||'') !== (c.newSi.notes||'')) parts.push('Notes updated');
+          lines.push('  ~ ' + taskLabel(c.newSi) + (parts.length ? ' — ' + parts.join(' | ') : ''));
+        });
+      }
+      if (removed.length) {
+        lines.push('REMOVED (' + removed.length + ')');
+        removed.forEach(si => lines.push('  - ' + taskLabel(si) + ' (' + freqLabel(si.frequency) + ')'));
+      }
+      if (added.length + changed.length + removed.length > 0) {
+        eq.maintenance.push({
+          id: uid(),
+          date: new Date().toISOString().slice(0,10),
+          type: 'Schedule Updated from Manual',
+          notes: lines.join('\n'),
+          isSystem: true
+        });
+      }
+
+      eq.serviceIntervals = newIntervals;
       eq.scheduleConfidence = 'uploaded';
       eq.manualUrl = result.manualUrl || eq.manualUrl;
     }
@@ -4977,8 +5203,13 @@ function renderHistory() {
     });
   });
 
-  // Sort newest first, filter out entries without dates
-  events = events.filter(e => e.date).sort((a,b) => b.date.localeCompare(a.date));
+  // Apply past date range filter
+  const { from: pastFrom, to: pastTo } = getPastDateRange();
+  events = events.filter(e => {
+    if (!e.date) return false;
+    const d = new Date(e.date);
+    return d >= pastFrom && d <= pastTo;
+  }).sort((a,b) => b.date.localeCompare(a.date));
 
   document.getElementById('historyCount').textContent = events.length + ' event' + (events.length !== 1 ? 's' : '');
 
@@ -5207,6 +5438,7 @@ async function startCheckout() {
           <span>✅ Cloud sync & multi-device</span>
           <span>✅ AI photo identification</span>
           <span>✅ Full maintenance history</span>
+          <span>✅ No ads — ever</span>
         </div>
       </div>
       <!-- Plan toggle -->
