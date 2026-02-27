@@ -824,7 +824,7 @@
 
   </div><!-- /page-timeline -->
 
-  <!-- ===== GARAGE PAGE ===== -->\
+  <!-- ===== GARAGE PAGE ===== -->
   <div class="page-view active" id="page-garage">
     <!-- Status Filter -->
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
@@ -2454,8 +2454,9 @@ function getMaintenanceIssues(data) {
 
         const key = eq.id + '|' + si.task + '|' + (si.action || '');
         const taskLabel = si.action ? `${si.task}: ${si.action}` : si.task;
-        const hasEverDone = eq.maintenance.some(m => m.type === si.task);
-        const lastDone = eq.maintenance.filter(m => m.type === si.task).sort((a,b) => b.date.localeCompare(a.date))[0];
+        // Match against both bare task name AND combined "Task: Action" label (auto-log writes the combined form)
+        const hasEverDone = eq.maintenance.some(m => m.type === si.task || m.type === taskLabel);
+        const lastDone = eq.maintenance.filter(m => m.type === si.task || m.type === taskLabel).sort((a,b) => b.date.localeCompare(a.date))[0];
         const daysSinceService = lastDone ? Math.round((today - new Date(lastDone.date)) / 86400000) : null;
 
         // --- Frequency-based logic (new schema) ---
@@ -4465,7 +4466,119 @@ function saveEquipment() {
   ['newEquipName','newEquipYear','newEquipEngine','newEquipSerial','newEquipDate'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('newEquipOilInterval').value='50';
   document.getElementById('aiScanStatus').style.display='none';
-  selectEquipment(eq.id);
+
+  // Show maintenance state question before navigating to equipment
+  _pendingNewEquipId = eq.id;
+  // Only show if there are service intervals to set a baseline for
+  if (eq.serviceIntervals && eq.serviceIntervals.length > 0) {
+    document.getElementById('modalMaintenanceState').classList.add('visible');
+  } else {
+    selectEquipment(eq.id);
+  }
+}
+
+let _pendingNewEquipId = null;
+
+function applyMaintenanceState(state) {
+  document.getElementById('modalMaintenanceState').classList.remove('visible');
+  const equipId = _pendingNewEquipId;
+  if (!equipId) return;
+
+  if (state === 'new') {
+    // Set all surfaceAsAlert service interval tasks as done today — no log entries, just a baseline
+    const data = load();
+    const eq = data.equipment.find(e => e.id === equipId);
+    if (eq && eq.serviceIntervals) {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const logged = new Set();
+      eq.serviceIntervals.forEach(si => {
+        if (!si.surfaceAsAlert) return;
+        if (si.dealerOnly) return;
+        if (logged.has(si.task)) return;
+        logged.add(si.task);
+        eq.maintenance.push({
+          id: uid(),
+          date: todayStr,
+          type: si.task,
+          notes: 'Baseline — marked up to date at setup',
+          nextDue: '',
+          baseline: true
+        });
+      });
+      save(data);
+    }
+    _pendingNewEquipId = null;
+    selectEquipment(equipId);
+
+  } else if (state === 'needs') {
+    // Current behavior — everything fires as overdue, nothing to do
+    _pendingNewEquipId = null;
+    selectEquipment(equipId);
+
+  } else if (state === 'select') {
+    // Show the per-task date picker modal
+    const data = load();
+    const eq = data.equipment.find(e => e.id === equipId);
+    if (!eq || !eq.serviceIntervals) { _pendingNewEquipId = null; selectEquipment(equipId); return; }
+
+    const list = document.getElementById('selectEachList');
+    const tasks = [];
+    const seen = new Set();
+    eq.serviceIntervals.forEach(si => {
+      if (!si.surfaceAsAlert || si.dealerOnly || seen.has(si.task)) return;
+      seen.add(si.task);
+      tasks.push(si);
+    });
+
+    list.innerHTML = tasks.map(si => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+        <span style="font-size:1.2rem">${si.icon || '🔧'}</span>
+        <div style="flex:1">
+          <div style="font-size:0.88rem;font-weight:600;color:var(--text)">${si.task}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${si.frequency}</div>
+        </div>
+        <input type="date" id="selectEach_${si.task.replace(/[^a-z0-9]/gi,'_')}"
+          max="${new Date().toISOString().slice(0,10)}"
+          style="background:var(--surface);border:1.5px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:0.82rem">
+      </div>
+    `).join('');
+
+    // Store tasks list for finishSelectEach
+    document.getElementById('modalMaintenanceSelectEach').dataset.tasks = JSON.stringify(tasks.map(t => t.task));
+    document.getElementById('modalMaintenanceSelectEach').classList.add('visible');
+  }
+}
+
+function finishSelectEach() {
+  document.getElementById('modalMaintenanceSelectEach').classList.remove('visible');
+  const equipId = _pendingNewEquipId;
+  _pendingNewEquipId = null;
+  if (!equipId) return;
+
+  const data = load();
+  const eq = data.equipment.find(e => e.id === equipId);
+  if (!eq) { selectEquipment(equipId); return; }
+
+  const tasks = JSON.parse(document.getElementById('modalMaintenanceSelectEach').dataset.tasks || '[]');
+  tasks.forEach(taskName => {
+    const inputId = 'selectEach_' + taskName.replace(/[^a-z0-9]/gi, '_');
+    const input = document.getElementById(inputId);
+    if (!input || !input.value) return; // blank = leave as overdue
+    // Don't duplicate
+    const already = eq.maintenance.some(m => m.date === input.value && m.type === taskName);
+    if (!already) {
+      eq.maintenance.push({
+        id: uid(),
+        date: input.value,
+        type: taskName,
+        notes: 'Last service date set at setup',
+        nextDue: '',
+        baseline: true
+      });
+    }
+  });
+  save(data);
+  selectEquipment(equipId);
 }
 
 function deleteActivityEntry(equipId, entryId, type) {
@@ -4479,7 +4592,7 @@ function deleteActivityEntry(equipId, entryId, type) {
   save(data);
   renderAll();
   renderDetail();
-  if (currentPage === 'history') renderHistory();
+  if (currentPage === 'timeline') renderTimeline();
 }
 
 function editAddedDate(equipId) {
@@ -5204,6 +5317,7 @@ function renderHistory() {
   data.equipment.forEach(eq => {
     if (equipFilter && eq.id !== equipFilter) return;
     eq.maintenance.forEach(m => {
+      if (m.baseline) return; // skip setup baseline entries — not real maintenance events
       if (typeFilter && typeFilter !== 'maintenance') return;
       events.push({
         date: m.date,
@@ -5467,6 +5581,50 @@ async function startCheckout() {
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="dismissManualUploadConfirm()">Cancel</button>
       <button class="btn btn-primary" id="manualUploadConfirmBtn" style="background:var(--amber);border-color:var(--amber)" onclick="confirmManualUpload()">Yes, upload & replace</button>
+    </div>
+  </div>
+</div>
+
+<!-- Maintenance State Modal -->
+<div class="modal-overlay" id="modalMaintenanceState" style="z-index:1100">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header" style="background:var(--amber-pale);border-bottom:2px solid var(--amber)">
+      <h3 style="color:var(--amber)">🔧 How's the maintenance on this one?</h3>
+    </div>
+    <div class="modal-body" style="padding:20px 24px">
+      <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 16px 0">This helps GearLog set the right starting point for service reminders.</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button onclick="applyMaintenanceState('new')" style="text-align:left;padding:14px 16px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-weight:700;color:var(--green);font-size:0.9rem;margin-bottom:2px">✅ Brand new or just fully serviced</div>
+          <div style="color:var(--text-muted);font-size:0.8rem">Everything is up to date — start the clock fresh from today</div>
+        </button>
+        <button onclick="applyMaintenanceState('needs')" style="text-align:left;padding:14px 16px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-weight:700;color:var(--red);font-size:0.9rem;margin-bottom:2px">⚠️ Needs attention</div>
+          <div style="color:var(--text-muted);font-size:0.8rem">Flag everything as overdue — I'll work through the service list</div>
+        </button>
+        <button onclick="applyMaintenanceState('select')" style="text-align:left;padding:14px 16px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-weight:700;color:var(--amber);font-size:0.9rem;margin-bottom:2px">🗓 Let me set each task individually</div>
+          <div style="color:var(--text-muted);font-size:0.8rem">I know when each service was last done — I'll enter dates myself</div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Maintenance State: Select Each Task Modal -->
+<div class="modal-overlay" id="modalMaintenanceSelectEach" style="z-index:1200">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header" style="background:var(--surface2);border-bottom:2px solid var(--border)">
+      <h3>🗓 When was each service last done?</h3>
+      <button class="modal-close" onclick="finishSelectEach()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;max-height:60vh;overflow-y:auto">
+      <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 16px 0">Leave blank if you're not sure — those will be flagged as overdue.</p>
+      <div id="selectEachList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="finishSelectEach()">Skip remaining</button>
+      <button class="btn btn-primary" onclick="finishSelectEach()" style="background:var(--amber);border-color:var(--amber)">Save & Continue</button>
     </div>
   </div>
 </div>
