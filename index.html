@@ -2322,6 +2322,23 @@ function renderUpcoming() {
     });
   });
 
+  // Also pull in "soon" items from getMaintenanceIssues (interval-based, no nextDue date)
+  // These won't have an exact date, so project them as ~today + 30 days as a soft placeholder
+  const issues = getMaintenanceIssues(data);
+  const existingKeys = new Set(tasks.map(t => t.equipId + '|' + t.task));
+  issues.forEach(issue => {
+    if (issue.status !== 'soon') return; // only 'soon', not 'due' (those belong in To-Do)
+    const key = issue.equipId + '|' + issue.task;
+    if (existingKeys.has(key)) return; // already in list via nextDue
+    // Project ~30 days out as estimated due date
+    const projDate = new Date(today);
+    projDate.setDate(projDate.getDate() + 30);
+    if (projDate >= fromDate && projDate <= toDate) {
+      tasks.push({ date: projDate, equipName: issue.equip, equipId: issue.equipId, task: issue.task, source: 'Due soon', icon: issue.icon || '🔧', estimated: true });
+      existingKeys.add(key);
+    }
+  });
+
   tasks.sort((a,b) => a.date - b.date);
 
   const el = document.getElementById('upcomingContent');
@@ -2329,6 +2346,7 @@ function renderUpcoming() {
     el.innerHTML = `<div style="text-align:center;padding:48px 24px;color:var(--text-muted)">
       <div style="font-size:2.5rem;margin-bottom:12px">📆</div>
       <div>No upcoming tasks in this range.</div>
+      <div style="font-size:0.8rem;margin-top:8px">Overdue and currently pending tasks appear in the <strong>To-Do</strong> tab.</div>
     </div>`;
     return;
   }
@@ -2342,14 +2360,15 @@ function renderUpcoming() {
         const isSoon = daysOut <= 30 && daysOut >= 0;
         const dateColor = isOverdue ? 'var(--red)' : isSoon ? 'var(--amber)' : 'var(--text)';
         return `<tr style="cursor:pointer" onclick="selectEquipment('${t.equipId}')">
-          <td style="color:${dateColor};font-weight:600">${fmtDate(t.date.toISOString().slice(0,10))}${isOverdue ? ' ⚠️' : isSoon ? ' 🔔' : ''}</td>
+          <td style="color:${dateColor};font-weight:600">${t.estimated ? '<span style="color:var(--amber)">~ Est.</span>' : fmtDate(t.date.toISOString().slice(0,10))}${isOverdue ? ' ⚠️' : isSoon ? ' 🔔' : ''}</td>
           <td>${t.equipName}</td>
           <td>${t.icon} ${t.task}</td>
           <td style="color:var(--text-muted);font-size:0.8rem">${t.source}</td>
         </tr>`;
       }).join('')}</tbody>
     </table>
-  </div>`;
+  </div>
+  <div style="font-size:0.78rem;color:var(--text-muted);padding:8px 12px;border-top:1px solid var(--border);background:var(--surface2)">Overdue and currently pending tasks appear in the <strong>To-Do</strong> tab, not here.</div>`;
 }
 
 function jumpToTodo(equipId) {
