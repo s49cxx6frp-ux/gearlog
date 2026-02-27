@@ -399,6 +399,50 @@
   }
 
   /* Service flags */
+  /* Equipment Cards */
+  .equip-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .equip-card:hover { border-color: var(--orange); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .equip-card.active-card { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(245,130,31,0.2); }
+  .equip-card-photo {
+    width: 100%; height: 150px; object-fit: cover; display: block;
+    background: var(--surface2);
+  }
+  .equip-card-placeholder {
+    width: 100%; height: 150px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem;
+  }
+  .equip-card-source {
+    position: absolute; top: 8px; left: 8px;
+    font-family: var(--font-mono); font-size: 0.62rem; font-weight: 500;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 3px; backdrop-filter: blur(6px);
+  }
+  .equip-card-source.ai { background: rgba(245,130,31,0.88); color: #fff; }
+  .equip-card-source.manual { background: rgba(74,222,128,0.88); color: #0f0f0f; }
+  .equip-card-rag {
+    position: absolute; top: 8px; right: 8px;
+    font-family: var(--font-mono); font-size: 0.62rem; font-weight: 600;
+    letter-spacing: 0.04em; padding: 2px 7px; border-radius: 3px; backdrop-filter: blur(6px);
+  }
+  .equip-card-rag.due { background: rgba(248,113,113,0.92); color: #fff; }
+  .equip-card-rag.soon { background: rgba(245,158,11,0.92); color: #0f0f0f; }
+  .equip-card-rag.good { background: rgba(74,222,128,0.88); color: #0f0f0f; }
+  .equip-card-body { padding: 10px 12px 12px; }
+  .equip-card-type { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 3px; }
+  .equip-card-name { font-family: var(--font-head); font-size: 1.1rem; font-weight: 800; letter-spacing: 0.3px; color: var(--text); line-height: 1.2; }
+  .equip-card-meta { font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; font-family: var(--font-mono); }
+  .equip-card-actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+
   .service-flag {
     display: inline-block;
     font-family: var(--font-mono);
@@ -833,20 +877,7 @@
       <button id="filterSoon" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setGarageFilter('soon')">🔔 Service Soon</button>
       <button id="filterDue" class="btn btn-secondary" style="font-size:0.78rem;padding:5px 12px" onclick="setGarageFilter('due')">⚠️ Service Needed</button>
     </div>
-    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:24px">
-      <div class="garage-table-wrap">
-      <table class="summary-table" id="equipmentGrid">
-        <thead><tr>
-          <th>Equipment</th>
-          <th>Status</th>
-          <th>Hours</th>
-          <th>Last Service</th>
-          <th>Actions</th>
-        </tr></thead>
-        <tbody id="equipmentGridBody"></tbody>
-      </table>
-      </div>
-    </div>
+    <div id="equipmentCardGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px"></div>
 
     <!-- Detail Panel -->
     <div class="detail-panel" id="detailPanel">
@@ -2085,73 +2116,99 @@ function setGarageFilter(filter) {
 }
 
 function renderEquipmentGrid(data) {
-  const tbody = document.getElementById('equipmentGridBody');
+  const grid = document.getElementById('equipmentCardGrid');
+  if (!grid) return;
+
   if (!data.equipment.length) {
-    if (tbody) tbody.innerHTML = `
-      <tr><td colspan="5">
-        <div style="text-align:center;padding:48px 24px">
-          <div style="font-size:3rem;margin-bottom:16px">🔧</div>
-          <div style="font-family:var(--font-head);font-size:1.4rem;font-weight:700;color:var(--text);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Welcome to GearLog</div>
-          <div style="color:var(--text-muted);font-size:0.88rem;margin-bottom:24px;max-width:320px;margin-left:auto;margin-right:auto">Track maintenance, parts, and service intervals for all your outdoor power equipment.</div>
-          <div style="display:flex;flex-direction:column;gap:12px;max-width:280px;margin:0 auto">
-            <button class="btn btn-primary" style="width:100%;padding:14px;font-size:0.95rem" onclick="document.getElementById('equipPhotoInput').click();openAddEquipment()">📸 Scan Equipment Photo</button>
-            <button class="btn btn-secondary" style="width:100%;padding:14px;font-size:0.95rem" onclick="openAddEquipment()">✏️ Add Manually</button>
-          </div>
-          <div style="margin-top:24px;font-size:0.75rem;color:var(--text-light)">Tip: Take a photo of your equipment and AI will identify it automatically</div>
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:48px 24px">
+        <div style="font-size:3rem;margin-bottom:16px">🔧</div>
+        <div style="font-family:var(--font-head);font-size:1.4rem;font-weight:700;color:var(--text);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Welcome to GearLog</div>
+        <div style="color:var(--text-muted);font-size:0.88rem;margin-bottom:24px;max-width:320px;margin-left:auto;margin-right:auto">Track maintenance, parts, and service intervals for all your outdoor power equipment.</div>
+        <div style="display:flex;flex-direction:column;gap:12px;max-width:280px;margin:0 auto">
+          <button class="btn btn-primary" style="width:100%;padding:14px;font-size:0.95rem" onclick="document.getElementById('equipPhotoInput').click();openAddEquipment()">📸 Scan Equipment Photo</button>
+          <button class="btn btn-secondary" style="width:100%;padding:14px;font-size:0.95rem" onclick="openAddEquipment()">✏️ Add Manually</button>
         </div>
-      </td></tr>`;
+        <div style="margin-top:24px;font-size:0.75rem;color:var(--text-light)">Tip: Take a photo of your equipment and AI will identify it automatically</div>
+      </div>`;
     return;
   }
-  const allIssues = getMaintenanceIssues(data);
-  if (!tbody) return;
 
-  tbody.innerHTML = data.equipment.map(eq => {
+  const allIssues = getMaintenanceIssues(data);
+
+  grid.innerHTML = data.equipment.map(eq => {
     const isActive = eq.id === currentEquipId;
     const equipIssues = allIssues.filter(i => i.equipId === eq.id);
     const hasDue = equipIssues.some(i => i.status === 'due');
     const hasSoon = equipIssues.some(i => i.status === 'soon');
     const eqStatus = hasDue ? 'due' : hasSoon ? 'soon' : 'good';
     if (garageFilter !== 'all' && eqStatus !== garageFilter) return '';
-    const serviceFlag = hasDue
-      ? `<span class="service-flag flag-due" style="cursor:pointer" onclick="event.stopPropagation();jumpToTodo('${eq.id}')">⚠️ Service Needed</span>`
-      : hasSoon
-      ? `<span class="service-flag flag-soon" style="cursor:pointer" onclick="event.stopPropagation();jumpToTodo('${eq.id}')">🔔 Service Soon</span>`
-      : `<span class="service-flag" style="background:rgba(74,222,128,0.1);color:var(--green);border:1px solid rgba(74,222,128,0.3)">✓ Good to Go!</span>`;
 
-    const maintSorted = [...eq.maintenance].sort((a,b) => b.date.localeCompare(a.date));
-    const lastMaint = maintSorted[0];
-    const lastOil = eq.maintenance.filter(m => m.type === 'Oil Change').sort((a,b) => b.date.localeCompare(a.date))[0];
-    const totalCost = eq.parts.reduce((s,p) => s + (parseFloat(p.cost)||0), 0);
+    // RAG badge
+    const ragClass = eqStatus;
+    const ragLabel = hasDue ? '⚠️ Service Needed' : hasSoon ? '🔔 Service Soon' : '✓ Good';
 
-    const intervalText = eq.oilInterval === 'annual'
-      ? '<span style="font-size:0.75rem;color:var(--text-muted);font-style:italic">Annual</span>'
-      : eq.oilInterval >= 999
-      ? '<span style="font-size:0.75rem;color:var(--text-muted);font-style:italic">Two-Stroke</span>'
-      : eq.oilInterval + ' hrs';
+    // Source badge — AI or manual
+    const isManual = eq.scheduleConfidence === 'high' && eq.manualUploaded;
+    const sourceClass = isManual ? 'manual' : 'ai';
+    const sourceLabel = isManual ? '📄 Manual' : '🤖 AI';
 
-    return `<tr class="${isActive ? 'active-row' : ''}" onclick="selectEquipment('${eq.id}')" style="cursor:pointer">
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:1.4rem">${getIcon(eq.type)}</span>
-          <div>
-            <div style="font-weight:600;font-size:0.95rem">${eq.name}</div>
-            <div style="font-size:0.74rem;color:var(--text-muted)">${eq.engine || ''}</div>
-          </div>
-        </div>
-      </td>
-      <td>${serviceFlag}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.88rem">${eq.trackHours ? (eq.totalHours || 0) : '<span style="color:var(--text-light)">—</span>'}</td>
-      <td style="font-size:0.82rem">${lastMaint ? fmtDate(lastMaint.date) + '<br><span style="font-size:0.73rem;color:var(--text-muted)">' + lastMaint.type + '</span>' : '—'}</td>
-      <td onclick="event.stopPropagation()">
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="card-btn" onclick="selectEquipment('${eq.id}'); openLogMaintenance()">+ Maint.</button>
-          ${eq.trackHours ? `<button class="card-btn" onclick="selectEquipment('${eq.id}'); openLogHours()">+ Hrs</button>` : ''}
-          <button class="card-btn" onclick="selectEquipment('${eq.id}'); openLogPart()">+ Parts</button>
-          <button class="card-btn" style="color:var(--text-muted)" onclick="openEditEquipment('${eq.id}')">✏️ Edit</button>
-        </div>
-      </td>
-    </tr>`;
+    // Image — user photo > productImageUrl > placeholder emoji
+    const imgSrc = eq.userPhoto || eq.productImageUrl || null;
+    const photoHtml = imgSrc
+      ? `<img class="equip-card-photo" src="${imgSrc}" alt="${eq.name}"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+           loading="lazy">
+         <div class="equip-card-placeholder" style="display:none">${getIcon(eq.type)}</div>`
+      : `<div class="equip-card-placeholder">${getIcon(eq.type)}</div>`;
+
+    // Quick action buttons
+    const actions = `
+      <button class="card-btn" onclick="event.stopPropagation();selectEquipment('${eq.id}');openLogMaintenance()">+ Maint.</button>
+      ${eq.trackHours ? `<button class="card-btn" onclick="event.stopPropagation();selectEquipment('${eq.id}');openLogHours()">+ Hrs</button>` : ''}
+      <button class="card-btn" onclick="event.stopPropagation();selectEquipment('${eq.id}');openLogPart()">+ Parts</button>
+      <button class="card-btn" style="color:var(--text-muted)" onclick="event.stopPropagation();openEditEquipment('${eq.id}')">✏️</button>
+      <button class="card-btn" style="color:var(--text-muted)" title="Upload photo" onclick="event.stopPropagation();triggerCardPhotoUpload('${eq.id}')">📷</button>
+    `;
+
+    const meta = [eq.engine, eq.year].filter(Boolean).join(' · ');
+
+    return `<div class="equip-card ${isActive ? 'active-card' : ''}" onclick="selectEquipment('${eq.id}')">
+      ${photoHtml}
+      <span class="equip-card-source ${sourceClass}">${sourceLabel}</span>
+      <span class="equip-card-rag ${ragClass}" onclick="event.stopPropagation();jumpToTodo('${eq.id}')">${ragLabel}</span>
+      <div class="equip-card-body">
+        <div class="equip-card-type">${eq.type || '🔧 Equipment'}</div>
+        <div class="equip-card-name">${eq.name}</div>
+        ${meta ? `<div class="equip-card-meta">${meta}</div>` : ''}
+        <div class="equip-card-actions">${actions}</div>
+      </div>
+    </div>`;
   }).join('');
+}
+
+// Hidden file input for card photo upload
+function triggerCardPhotoUpload(equipId) {
+  let inp = document.getElementById('cardPhotoInput');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.type = 'file'; inp.id = 'cardPhotoInput'; inp.accept = 'image/*'; inp.style.display = 'none';
+    document.body.appendChild(inp);
+  }
+  inp.onchange = async () => {
+    const file = inp.files[0];
+    if (!file) return;
+    // Convert to base64 and store as userPhoto
+    const reader = new FileReader();
+    reader.onload = e => {
+      const data = load();
+      const eq = data.equipment.find(eq => eq.id === equipId);
+      if (eq) { eq.userPhoto = e.target.result; save(data); renderEquipmentGrid(data); }
+    };
+    reader.readAsDataURL(file);
+    inp.value = '';
+  };
+  inp.click();
 }
 
 // ---------- Page navigation ----------
@@ -4070,7 +4127,7 @@ function switchTab(tab) {
 function openModal(id) { document.getElementById(id).classList.add('visible'); }
 function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
 
-function openAddEquipment() { openModal('modalAddEquipment'); }
+function openAddEquipment() { window._pendingUserPhoto = null; openModal('modalAddEquipment'); }
 
 // Infer whether equipment likely has an hour meter from its name/type
 function inferHasHourMeter(query) {
@@ -4214,6 +4271,8 @@ async function scanEquipmentPhoto(input) {
       canvas.getContext('2d').drawImage(img, 0, 0, width, height);
       // Compress to JPEG at 0.85 quality
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      // Store the photo for use as the card image when equipment is saved
+      window._pendingUserPhoto = dataUrl;
       res({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' });
     };
     img.onerror = rej;
@@ -4435,6 +4494,8 @@ function saveEquipment() {
   const specs = window._pendingEquipSpecs || {};
   const scheduleConfidence = specs.confidence || 'manual';
   window._pendingEquipSpecs = null;
+  // _pendingUserPhoto is set by photo scan — clear it after use
+  window._pendingUserPhoto = window._pendingUserPhoto || null;
 
   const eq = {
     id: uid(),
@@ -4450,6 +4511,8 @@ function saveEquipment() {
     oilInterval: parseInt(document.getElementById('newEquipOilInterval').value)||50,
     notes: specs.notes || '',
     serviceIntervals: specs.serviceIntervals || [],
+    productImageUrl: specs.productImageUrl || null,
+    userPhoto: window._pendingUserPhoto || null,
     maintenance: [], hours: [],
     parts: (specs.parts || []).map((p, i) => ({
       id: 'pai' + Date.now() + i,
